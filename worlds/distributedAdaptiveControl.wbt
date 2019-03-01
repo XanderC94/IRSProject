@@ -1,0 +1,25 @@
+#VRML_SIM R2019a utf8
+WorldInfo {
+  title "Distributed Adaptive Control"
+}
+Viewpoint {
+  fieldOfView 1.5
+  orientation 0.018694089514007278 -0.9961816794367884 -0.08527949678405679 3.57158775584319
+  position 0.02521509789039421 0.26097778986451575 -0.7126302110319619
+  follow "ePuck2"
+  followOrientation TRUE
+}
+TexturedBackground {
+}
+RectangleArena {
+  floorSize 2 2
+  floorAppearance RoughConcrete {
+  }
+  wallAppearance Roughcast {
+  }
+}
+PointLight {
+  location 0.5 0.3 0.5
+}
+E-puck {
+}
