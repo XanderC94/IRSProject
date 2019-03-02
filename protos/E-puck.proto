@@ -365,140 +365,132 @@ Robot {
         }
       ]
     }
+    ## DISTANCE SENSORS ##
     DEF EPUCK_PS0 E-puckDistanceSensor {
-      translation 0.01 0.033 -0.03
+      translation 0.01 0 -0.03
       rotation 0 1 0 1.27
       name "ps0"
     }
     DEF EPUCK_PS1 E-puckDistanceSensor {
-      translation 0.025 0.033 -0.022
+      translation 0.025 0 -0.022
       rotation 0 1 0 0.77
       name "ps1"
     }
     DEF EPUCK_PS2 E-puckDistanceSensor {
-      translation 0.031 0.033 0
+      translation 0.031 0 0
       name "ps2"
     }
     DEF EPUCK_PS3 E-puckDistanceSensor {
-      translation 0.015 0.033 0.03
+      translation 0.015 0 0.03
       rotation 0 1 0 5.21
       name "ps3"
     }
     DEF EPUCK_PS4 E-puckDistanceSensor {
-      translation -0.015 0.033 0.03
+      translation -0.015 0 0.03
       rotation 0 1 0 4.21
       name "ps4"
     }
     DEF EPUCK_PS5 E-puckDistanceSensor {
-      translation -0.031 0.033 0
+      translation -0.031 0 0
       rotation 0 1 0 3.14159
       name "ps5"
     }
     DEF EPUCK_PS6 E-puckDistanceSensor {
-      translation -0.025 0.033 -0.022
+      translation -0.025 0 -0.022
       rotation 0 1 0 2.37
       name "ps6"
     }
     DEF EPUCK_PS7 E-puckDistanceSensor {
-      translation -0.01 0.033 -0.03
+      translation -0.01 0 -0.03
       rotation 0 1 0 1.87
       name "ps7"
     }
-    DEF EPUCK_LS0 LightSensor {
-      translation 0.01 0.0329 -0.03
+    ## LIGHT SENSORS ##
+    DEF EPUCK_LS0 E-puckLightSensor {
+      translation 0.01 0 -0.03
       rotation 0 1 0 1.27
       name "ls0"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS1 LightSensor {
-      translation 0.025 0.0329 -0.022
+    DEF EPUCK_LS1 E-puckLightSensor {
+      translation 0.025 0 -0.022
       rotation 0 1 0 0.77
       name "ls1"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS2 LightSensor {
-      translation 0.031 0.0329 0
+    DEF EPUCK_LS2 E-puckLightSensor {
+      translation 0.031 0 0
+      rotation 0 1 0 0.0
       name "ls2"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS3 LightSensor {
-      translation 0.015 0.0329 0.03
+    DEF EPUCK_LS3 E-puckLightSensor {
+      translation 0.015 0 0.03
       rotation 0 1 0 5.21
       name "ls3"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS4 LightSensor {
-      translation -0.015 0.0329 0.03
+    DEF EPUCK_LS4 E-puckLightSensor {
+      translation -0.015 0 0.03
       rotation 0 1 0 4.21
       name "ls4"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS5 LightSensor {
-      translation -0.031 0.0329 0
+    DEF EPUCK_LS5 E-puckLightSensor {
+      translation -0.031 0 0
       rotation 0 1 0 3.14159
       name "ls5"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS6 LightSensor {
-      translation -0.025 0.0329 -0.022
+    DEF EPUCK_LS6 E-puckLightSensor {
+      translation -0.025 0 -0.022
       rotation 0 1 0 2.37
       name "ls6"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS7 LightSensor {
-      translation -0.01 0.0329 -0.03
+    DEF EPUCK_LS7 E-puckLightSensor {
+      translation -0.01 0 -0.03
       rotation 0 1 0 1.87
       name "ls7"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_LS8 LightSensor {
-      translation 0.0 0.0329 -0.03
+    DEF EPUCK_LS8 E-puckLightSensor {
+      translation 0.0 0 -0.03
       rotation 0 1 0 1.58784
       name "ls8"
-      lookupTable [
-        0 0 0.001,
-        10 4095 0.001
-      ]
     }
-    DEF EPUCK_BS0 TouchSensor {
-      translation 0.0 0.035 0.0
+    ## BUMPERS ##
+    DEF EPUCK_BS0 E-puckBumper {
+      translation 0.01 0 -0.03
+      rotation 0 1 0 1.27
       name "bs0"
-      boundingObject Cylinder {
-        height 0.06
-        radius 0.04
-        top FALSE
-        bottom FALSE
-      }
-      type "bumper"
-      locked TRUE
-      lookupTable [
-        0 0 0.001,
-        1 1 0.001
-      ]
+    }
+    DEF EPUCK_BS1 E-puckBumper {
+      translation 0.025 0 -0.022
+      rotation 0 1 0 0.77
+      name "bs1"
+    }
+    DEF EPUCK_BS2 E-puckBumper {
+      translation 0.031 0 0
+      rotation 0 1 0 0.0
+      name "bs2"
+    }
+    DEF EPUCK_BS3 E-puckBumper {
+      translation 0.015 0 0.03
+      rotation 0 1 0 5.21
+      name "bs3"
+    }
+    DEF EPUCK_BS4 E-puckBumper {
+      translation -0.015 0 0.03
+      rotation 0 1 0 4.21
+      name "bs4"
+    }
+    DEF EPUCK_BS5 E-puckBumper {
+      translation -0.031 0 0
+      rotation 0 1 0 3.14159
+      name "bs5"
+    }
+    DEF EPUCK_BS6 E-puckBumper {
+      translation -0.025 0 -0.022
+      rotation 0 1 0 2.37
+      name "bs6"
+    }
+    DEF EPUCK_BS7 E-puckBumper {
+      translation -0.01 0 -0.03
+      rotation 0 1 0 1.87
+      name "bs7"
     }
     DEF EPUCK_CAMERA Camera {
       translation 0 0.028 -0.03

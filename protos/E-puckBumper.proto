@@ -1,0 +1,29 @@
+PROTO E-puckBumper [
+  field SFVec3f translation 0 0.005 0
+  field SFRotation rotation  0 1 0 0
+  field SFString name "bs"
+]
+{
+  Solid {
+  translation IS translation
+  rotation IS rotation
+    children [
+      TouchSensor {
+        translation 0.005 0.04 0
+        name IS name
+        scale 0.1 0.1 0.1
+        boundingObject Box {
+            size 0.05 0.05 0.15
+        }
+        type "bumper"
+        locked TRUE
+        lookupTable [
+            0 0 0.001,
+            1 1 0.001
+        ]
+      }
+    ]
+    name IS name
+    model "e-puck bumper"
+  }
+}

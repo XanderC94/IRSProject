@@ -4,14 +4,13 @@ WorldInfo {
 }
 Viewpoint {
   fieldOfView 1.5
-  orientation 0.018694089514007278 -0.9961816794367884 -0.08527949678405679 3.57158775584319
-  position 0.02521509789039421 0.26097778986451575 -0.7126302110319619
-  follow "ePuck2"
-  followOrientation TRUE
+  orientation 1 0 0 4.71238898038469
+  position 0.0003051560168736236 1.6615776676620688 3.501262186138241e-06
 }
 TexturedBackground {
 }
 RectangleArena {
+  translation -2.42861286636753e-17 0 0
   floorSize 2 2
   floorAppearance RoughConcrete {
   }
@@ -22,4 +21,24 @@ PointLight {
   location 0.5 0.3 0.5
 }
 E-puck {
+  translation -0.12000000000000012 0 -0.6200000000000001
+}
+SolidBox {
+  translation 0.25 0.125 0.25
+  size 0.25 0.25 0.25
+}
+SolidBox {
+  translation -0.5600000000000003 0.125 0.5500000000000003
+  name "box(1)"
+  size 0.25 0.25 0.25
+}
+SolidBox {
+  translation 0.5700000000000001 0.125 -0.11999999999999984
+  name "box(2)"
+  size 0.25 0.25 0.25
+}
+SolidBox {
+  translation -0.5600000000000003 0.125 -0.6700000000000003
+  name "box(3)"
+  size 0.25 0.25 0.25
 }
