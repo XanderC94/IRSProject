@@ -21,6 +21,18 @@ PROTO E-puckBumper [
             0 0 0.001,
             1 1 0.001
         ]
+        children [
+          Shape { # sensor
+            appearance PBRAppearance {
+              baseColor 0 0 0
+              roughness 0.4
+              metalness 0
+            }
+            geometry Box {
+              size 0.05 0.05 0.15
+            }
+          }
+        ]
       }
     ]
     name IS name

@@ -3,16 +3,50 @@
 # You may need to import some classes of the controller module. Ex:
 #  from controller import Robot, LED, DistanceSensor
 from controller import *
-import sys, math, operator, os
+import sys, math, operator
 
 from libs.epuck import *
 from libs.argutils import *
 from libs.sensor import *
 import libs.motor as motor
 
-from libs.motorschema import *
+from libs.ann import *
+
+opt = parseArgs(sys.argv)
+
+print(opt)
+
+COLLISION_THRESHOLD = opt['coll-ths']
+
+####################################################################################################
 
 #########################################################################################################
+
+# Connectivity Matrices
+# for each neuron of layer i  held the weights to each other neuron of level i+1
+connectivities = {
+    0: matrix(ds_n, bumper_n), # Proximity
+    1: matrix(bumper_n, motor_n) # Collision
+}
+
+# results of f(activation[i]) where f is the output function
+outputs = {
+    0: array(ds_n), # output: Proximity -> Collision
+    1: array(bumper_n), # output: Collison -> Motor
+    2: array(motor_n) # output: Motor -> ...
+}
+
+summedActivation = {
+    0: lambda nidx, i, o, w: weightedSum(nidx, w, i),
+    1: lambda nidx, i, o, w: i[nidx] + weightedSum(nidx, w, o),
+    2: lambda nidx, i, o, w: weightedSum(nidx, w, i)
+}
+
+activationFunction = {
+    0: lambda h: ActivationFunction.logistic(h), # Logistic Function
+    1: lambda h: ActivationFunction.linear_threshold(h, COLLISION_THRESHOLD),
+    2: lambda h: ActivationFunction.linear(h) # Maybe should be the conversion to motor speed?
+}
 
 distance_ids = ids(distance_sensor_template, ds_n)
 light_ids = ids(light_sensor_template, ls_n)
@@ -66,19 +100,7 @@ while robot.step(timestep) != -1:
     magnitudes = []
     radians = []
 
-    res, theta = PerceptionSchema.lightPerceptor(ls_values, ls_rad, compose)
-    magnitudes.append(res)
-    radians.append(theta)
-    print(f"light direction:{theta}, magnitude: {res}")
-
-    res, theta = PerceptionSchema.obstaclePerceptor(ds_values, ds_rad, maximum)
-    magnitudes.append(res)
-    radians.append(theta)
-    print(f"obstacle direction:{theta}, distance:{res}")
-    
-    if (len(magnitudes) > 1):
-        res, theta = PerceptionSchema.mergePerception(magnitudes, radians, maximum)
-        print(f"direction:{theta}, magnitude:{res}")
+    res, theta = (0.0, 0.0)
 
     lv, rv = motor.differential(theta, AXLE_LENGTH)
 
