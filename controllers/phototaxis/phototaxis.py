@@ -14,11 +14,11 @@ from libs.motorschema import *
 
 #########################################################################################################
 
-distance_ids = ids(distance_sensor_template, ds_n)
-light_ids = ids(light_sensor_template, ls_n)
-led_ids = ids(led_template, led_n)
+distance_ids = ids(distance_sensor_template, nDistanceSensors)
+light_ids = ids(light_sensor_template, nLightSensors)
+led_ids = ids(led_template, nLEDs)
 motors_ids = {'left':'left wheel motor', 'right':'right wheel motor'}
-bumper_ids = ids(bumper_template, bumper_n)
+bumper_ids = ids(bumper_template, nBumpers)
 
 # create the Robot instance.
 robot = Robot()
@@ -66,12 +66,12 @@ while robot.step(timestep) != -1:
     magnitudes = []
     radians = []
 
-    res, theta = PerceptionSchema.lightPerceptor(ls_values, ls_rad, compose)
+    res, theta = PerceptionSchema.lightPerceptor(ls_values, lss_rad, compose)
     magnitudes.append(res)
     radians.append(theta)
     print(f"light direction:{theta}, magnitude: {res}")
 
-    res, theta = PerceptionSchema.obstaclePerceptor(ds_values, ds_rad, maximum)
+    res, theta = PerceptionSchema.obstaclePerceptor(ds_values, dss_rad, maximum)
     magnitudes.append(res)
     radians.append(theta)
     print(f"obstacle direction:{theta}, distance:{res}")
