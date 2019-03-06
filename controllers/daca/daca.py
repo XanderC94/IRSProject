@@ -16,17 +16,17 @@ opt = parseArgs(sys.argv)
 
 print(opt)
 
-COLLISION_THRESHOLD = opt['coll-ths']
-LEARNING_RATE = opt['lrate']
-FORGET_RATE = opt['frate']
+COLLISION_THRESHOLD = float(opt['coll-ths'])
+LEARNING_RATE = float(opt['lrate'])
+FORGET_RATE = float(opt['frate'])
 ####################################################################################################
 
 # Connectivity Matrices
 # for each neuron of layer[j] the matrix holds the weights to each neuron of level[i = j - 1]
 # in the form of neuron[n] of layer[j] -> [ w[n][0], ..., w[n][m] ] of neuron[0...m] of layer[i]
 connectivities = {
-    1: ann.matrix(nBumpers, nDistanceSensors, gen = lambda: random.random()), # Collision <- Proximity
-    2: ann.matrix(nMotors, nBumpers / 2, gen = lambda: random.random()) # Output <- Collision, not fully connected but left bumpers connected to left motor and right bumpers to right motor
+    1: ann.matrix(nBumpers, nDistanceSensors), # Collision <- Proximity
+    2: ann.matrix(nMotors, int(nBumpers / 2)) # Output <- Collision, not fully connected but left bumpers connected to left motor and right bumpers to right motor
 }
 
 # layer -> output
@@ -39,9 +39,9 @@ outputs = {
 
 # sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 
 compositionFunction = {
-    0: lambda sIn, _, _: sIn,
+    0: lambda sIn, o, w: sIn,
     1: lambda sIn, plOut, wij: sIn + ann.weightedSum(wij, plOut),
-    2: lambda _, plOut, wij: ann.weightedSum(wij, plOut) # (?)
+    2: lambda i, plOut, wij: ann.weightedSum(wij, plOut) # (?)
 }
 
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer]) 
@@ -56,7 +56,7 @@ activationFunction = {
 outputFunction = {
     0: lambda a: a,
     1: lambda a: a,
-    2: lambda a: a
+    2: lambda a: min(a, MAX_VR - 1) + 1
 }
 
 #########################################################################################################
@@ -131,7 +131,7 @@ while robot.step(timestep) != -1:
     hf = compositionFunction[layer]
     g = activationFunction[layer]
     f = outputFunction[layer]
-    step = len(o)/len(motors)
+    step = int(len(o)/len(motors))
     
     # since the last layer is not fully connected, get slices of the output from the collision layer by *steps*
     # in this case to each motor is provided half (2 motors) of the outputs array: 
@@ -144,8 +144,13 @@ while robot.step(timestep) != -1:
     ##########################################################################################
 
     rv, lv = (outputs[layer][0], outputs[layer][1])
-
-    connectivities = ann.updateConnectivities(len(distances), connectivities, outputs, LEARNING_RATE, FORGET_RATE)
+    
+    # Weights Updates
+    connectivities.update({1: ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)})
+    connectivities.update({2:
+        ann.updateConnectivities(connectivities[2], outputs[2][:1], outputs[1][:step], LEARNING_RATE, FORGET_RATE) +
+        ann.updateConnectivities(connectivities[2], outputs[2][1:], outputs[1][step:], LEARNING_RATE, FORGET_RATE)
+    })
 
     print(f"Speed:{lv}, {rv}")
         

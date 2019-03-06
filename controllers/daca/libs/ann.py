@@ -1,10 +1,10 @@
 import math, operator
 
-def matrix(rn, cn, gen = lambda : 0.0) -> list:
-    return [array(cn, gen) for _ in range(0, rn)]
+def matrix(rn : int, cn : int, gen: lambda: float = lambda: 0.0) -> list:
+    return [array(cn, gen) for i in range(0, rn)]
 
-def array(n, gen = lambda : 0.0) -> list:
-    return [gen() for _ in range(0, n)]
+def array(n: int, gen: lambda: float = lambda: 0.0) -> list:
+    return [float(gen()) for i in range(0, n)]
 
 def weightedSum(w : list, o : list) -> float:
     return sum([w[j] * o[j] for j in range(0, len(o))])
@@ -21,20 +21,20 @@ def activationLevel(hi : float, g : lambda h: float) -> float:
 def neuronOutput(ai : float, f = lambda a: a) -> float:
     return f(ai)
 
-def updateConnectivities(N : int, ann : dict, o : dict, lrate : float, frate : float) -> dict:
+def updateConnectivities(w : list, oc : list, op: list, lrate : float, frate : float) -> list:
     
-    for layer, w in ann.items():
+        om = mean(oc) # mean output level of the current layer
+        M = len(oc)
+        N = len(op)
 
-        om = mean(o[layer]) # mean output level of the current layer
-        
-        ann[layer] = [
-            # i <- neuron of the current layer, j <- neuron of the previous layer
-            w[i][j] + (lrate * o[layer][i] * o[layer - 1][j] - frate * om * w[i][j]) / N
-                for i in range(0, len(o[layer]))
-                for j in range(0, len(o[layer - 1]))
-        ]
-
-    return ann
+        # i <- neuron of the current layer, j <- neuron of the previous layer
+        return [
+                [
+                    w[i][j] + (lrate * oc[i] * op[j] - frate * om * w[i][j]) / N
+                    for j in range(0, N)
+                ]
+                for i in range(0, M)
+            ]
 
 class ActivationFunction:
     logistic = lambda x: 1 / (1 + math.exp(-x))
