@@ -16,9 +16,9 @@ opt = parseArgs(sys.argv)
 
 print(opt)
 
-COLLISION_THRESHOLD = float(opt['coll-ths'])
-LEARNING_RATE = float(opt['lrate'])
-FORGET_RATE = float(opt['frate'])
+COLLISION_THRESHOLD = 1.0 #float(opt['coll-ths'])
+LEARNING_RATE = 0.5 #float(opt['lrate'])
+FORGET_RATE = 0.3 #float(opt['frate'])
 ####################################################################################################
 
 # Connectivity Matrices
@@ -56,7 +56,7 @@ activationFunction = {
 outputFunction = {
     0: lambda a: a,
     1: lambda a: a,
-    2: lambda a: min(a, MAX_VR - 1) + 1
+    2: lambda a: min(a, MAX_V - 1) + 1 # Motors output are between [1, and MAX_V]
 }
 
 #########################################################################################################
@@ -98,8 +98,10 @@ while robot.step(timestep) != -1:
     for k, s in dss.items(): distances.append(s.device.getValue())
     for k, s in bumpers.items(): bumps.append(s.device.getValue())
     
-    print(f"distance:{distances}")
-    print(f"distance:{bumps}")
+    # print(f"distances:{distances}")
+    # print(f"bumps:{bumps}")
+
+    if 1 in bumps: print("TOUCHING!")
     
     # Process sensor data here.
     layer = 0 # INPUT -> PROXIMITY
@@ -152,7 +154,7 @@ while robot.step(timestep) != -1:
         ann.updateConnectivities(connectivities[2], outputs[2][1:], outputs[1][step:], LEARNING_RATE, FORGET_RATE)
     })
 
-    print(f"Speed:{lv}, {rv}")
+    # print(f"Speed:{lv}, {rv}")
         
     # Enter here functions to send actuator commands:
     motors['left'].device.setVelocity(lv)
