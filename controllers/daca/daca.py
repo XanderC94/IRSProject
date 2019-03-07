@@ -17,7 +17,7 @@ opt = parseArgs(sys.argv)
 print(opt)
 
 COLLISION_THRESHOLD = 1.0 #float(opt['coll-ths'])
-LEARNING_RATE = 0.5 #float(opt['lrate'])
+LEARNING_RATE = 0.7 #float(opt['lrate'])
 FORGET_RATE = 0.3 #float(opt['frate'])
 ####################################################################################################
 
@@ -26,7 +26,7 @@ FORGET_RATE = 0.3 #float(opt['frate'])
 # in the form of neuron[n] of layer[j] -> [ w[n][0], ..., w[n][m] ] of neuron[0...m] of layer[i]
 connectivities = {
     1: ann.matrix(nBumpers, nDistanceSensors), # Collision <- Proximity
-    2: ann.matrix(nMotors, int(nBumpers / 2)) # Output <- Collision, not fully connected but left bumpers connected to left motor and right bumpers to right motor
+    2: ann.matrix(nMotors, int(nBumpers / 2), gen = lambda:1.0) # Output <- Collision, not fully connected but left bumpers connected to left motor and right bumpers to right motor
 }
 
 # layer -> output
@@ -46,7 +46,7 @@ compositionFunction = {
 
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer]) 
 activationFunction = {
-    0: lambda h: ann.ActivationFunction.linear(h), # Logistic (?) or Linear (?)
+    0: lambda h: ann.ActivationFunction.logistic(h), # Logistic (?) or Linear (?)
     1: lambda h: ann.ActivationFunction.linear_threshold(h, COLLISION_THRESHOLD),
     2: lambda h: ann.ActivationFunction.linear(h) # Maybe should be the conversion to motor speed?
 }
@@ -104,18 +104,23 @@ while robot.step(timestep) != -1:
     if 1 in bumps: print("TOUCHING!")
     
     # Process sensor data here.
-    layer = 0 # INPUT -> PROXIMITY
+    # INPUT -> PROXIMITY  ##########################
+    layer = 0 
 
     hf = compositionFunction[layer]
     g = activationFunction[layer]
     f = outputFunction[layer]
 
-    h_prox = [ann.inputComposition(distances[n], [], [], hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
+    h_prox = [ann.inputComposition(i = distances[n], o = [], w = [],h = hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
     a_prox = [ann.activationLevel(h, g) for h in h_prox] # activation level of each neuron in the Proximity Layer 0
     outputs[layer] = [ann.neuronOutput(a, f) for a in a_prox] # output level of each neuron that will be passed to the next layer
     
-    layer += 1 # INPUT -> COLLISION
+    #################################################
 
+    # INPUT -> COLLISION ###########################
+
+    layer += 1 
+    
     w = connectivities[layer]
     o = outputs[layer - 1] # Proximity Layer Output
     hf = compositionFunction[layer]
@@ -126,7 +131,10 @@ while robot.step(timestep) != -1:
     a_col = [ann.activationLevel(h, g) for h in h_col]
     outputs[layer] = [ann.neuronOutput(a, f) for a in a_col]
 
-    layer += 1 # OUTPUT -> MOTORS
+    ################################################
+
+    # OUTPUT -> MOTORS #############################
+    layer += 1 
 
     w = connectivities[layer]
     o = outputs[layer - 1] # Collision Layer Output
@@ -142,19 +150,23 @@ while robot.step(timestep) != -1:
     h_col = [ann.inputComposition([], o[n*step:(n+1)*step], w[n], hf) for n in range(0, len(motors))]
     a_col = [ann.activationLevel(h, g) for h in h_col]
     outputs[layer] = [ann.neuronOutput(a, f) for a in a_col]
+    
+    ##################################################
 
     ##########################################################################################
 
-    rv, lv = (outputs[layer][0], outputs[layer][1])
+    
     
     # Weights Updates
     connectivities.update({1: ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)})
+    
     connectivities.update({2:
         ann.updateConnectivities(connectivities[2], outputs[2][:1], outputs[1][:step], LEARNING_RATE, FORGET_RATE) +
         ann.updateConnectivities(connectivities[2], outputs[2][1:], outputs[1][step:], LEARNING_RATE, FORGET_RATE)
     })
-
-    # print(f"Speed:{lv}, {rv}")
+    
+    rv, lv = (outputs[layer][0], outputs[layer][1])
+    print(f"Speed:{lv}, {rv}")
         
     # Enter here functions to send actuator commands:
     motors['left'].device.setVelocity(lv)
