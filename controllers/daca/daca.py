@@ -19,6 +19,7 @@ print(opt)
 COLLISION_THRESHOLD = 1.0 #float(opt['coll-ths'])
 LEARNING_RATE = 0.5 #float(opt['lrate'])
 FORGET_RATE = 0.3 #float(opt['frate'])
+
 ####################################################################################################
 
 # Connectivity Matrices
