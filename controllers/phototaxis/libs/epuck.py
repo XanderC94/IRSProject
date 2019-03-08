@@ -1,15 +1,14 @@
 import math, operator
 
-WHEEL_RADIUS = 0.02
-AXLE_LENGTH = 0.052
+WHEEL_RADIUS = 0.02 #meters
+AXLE_LENGTH = 0.052 #meters
 
 RANGE = float(1024 / 2)
 
 EPUCK_FRONT_RAD = math.pi / 2
 PI = math.pi
 W_WHEEL = 2 * PI
-MAX_VL = 7.536
-MAX_VR = 7.536
+MAX_V = 7.536
 
 nLEDs = 10
 nDistanceSensors = 8

@@ -80,7 +80,7 @@ while robot.step(timestep) != -1:
         res, theta = PerceptionSchema.mergePerception(magnitudes, radians, maximum)
         print(f"direction:{theta}, magnitude:{res}")
 
-    lv, rv = motor.differential(theta, AXLE_LENGTH)
+    lv, rv = motor.toDifferentialModel(res, theta, AXLE_LENGTH)
 
     print(f"Speed:{lv}, {rv}")
         
