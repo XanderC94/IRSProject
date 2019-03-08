@@ -38,5 +38,5 @@ def updateConnectivities(w : list, oc : list, op: list, lrate : float, frate : f
 
 class ActivationFunction:
     logistic = lambda x: 1 / (1 + math.exp(-x))
-    linear_threshold = lambda x, t: 0 if x < t else 1
+    linear_threshold = lambda x, threshold: 0 if x < threshold else 1
     linear = lambda x: x
