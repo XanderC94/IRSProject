@@ -25,3 +25,5 @@ distance_sensor_template = 'ps{id}'
 light_sensor_template = 'ls{id}'
 led_template = 'led{id}'
 bumper_template = 'bs{id}'
+
+toEpuckFront = lambda theta: EPUCK_FRONT_RAD - theta

@@ -81,7 +81,8 @@ while robot.step(timestep) != -1:
         print(f"direction:{theta}, magnitude:{res}")
 
     lv, rv = motor.toDifferentialModel(res, theta, AXLE_LENGTH)
-
+    lv, rv = motor.adjustVelocity(lv, rv, theta)
+    
     print(f"Speed:{lv}, {rv}")
         
     # Enter here functions to send actuator commands:
