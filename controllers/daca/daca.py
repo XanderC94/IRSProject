@@ -8,59 +8,17 @@ import sys, math, operator, random
 from libs.epuck import *
 from libs.argutils import *
 from libs.sensor import *
+from libs.motorresponse import *
 import libs.motor as motor
 
-import libs.ann as ann
+import libs.annutils as ann
+from libs.nuralnetstructure import *
 
 opt = parseArgs(sys.argv)
 
 print(opt)
 
-COLLISION_THRESHOLD = 1.0 #float(opt['coll-ths'])
-LEARNING_RATE = 0.5 #float(opt['lrate'])
-FORGET_RATE = 0.3 #float(opt['frate'])
-
-####################################################################################################
-
-# Connectivity Matrices
-# for each neuron of layer[j] the matrix holds the weights to each neuron of level[i = j - 1]
-# in the form of neuron[n] of layer[j] -> [ w[n][0], ..., w[n][m] ] of neuron[0...m] of layer[i]
-connectivities = {
-    1: ann.matrix(nBumpers, nDistanceSensors), # Collision <- Proximity
-    2: ann.matrix(nMotors, int(nBumpers / 2)) # Output <- Collision, not fully connected but left bumpers connected to left motor and right bumpers to right motor
-}
-
-# layer -> output
-# results of f(activation[i]) where f is the output function
-outputs = {
-    0: ann.array(nDistanceSensors), # output: Proximity -> Collision
-    1: ann.array(nBumpers), # output: Collison -> Motor
-    2: ann.array(nMotors) # output: Motor -> ...
-}
-
-# sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 
-compositionFunction = {
-    0: lambda sIn, o, w: sIn,
-    1: lambda sIn, plOut, wij: sIn + ann.weightedSum(wij, plOut),
-    2: lambda i, plOut, wij: ann.weightedSum(wij, plOut) # (?)
-}
-
-# compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer]) 
-activationFunction = {
-    0: lambda h: ann.ActivationFunction.linear(h), # Logistic (?) or Linear (?)
-    1: lambda h: ann.ActivationFunction.linear_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: ann.ActivationFunction.linear(h) # Maybe should be the conversion to motor speed?
-}
-
-# activationLevel[layer] as a -> output[layer] as o
-# the final value that will be propagated to each one of the connected neurons bearing activactionLevel a
-outputFunction = {
-    0: lambda a: a,
-    1: lambda a: a,
-    2: lambda a: min(a, MAX_V - 1) + 1 # Motors output are between [1, and MAX_V]
-}
-
-#########################################################################################################
+# Setup ------------------------------------
 
 distance_ids = ids(distance_sensor_template, nDistanceSensors)
 light_ids = ids(light_sensor_template, nLightSensors)
@@ -88,11 +46,14 @@ for k, m in motors.items():
     m.device.setPosition(float('+inf'))
     m.device.setVelocity(0.0)
 
+#-------------------------------------------------
+
+
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while robot.step(timestep) != -1:
-    # Read the sensors:
     
+    # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
     distances = []
     bumps = []
 
@@ -103,63 +64,124 @@ while robot.step(timestep) != -1:
     # print(f"bumps:{bumps}")
 
     if 1 in bumps: print("TOUCHING!")
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+    # ~~~~~~~~~~~~~~~~~ PROCESS CURRENT NETWORKSTATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    # Process sensor data here.
-    layer = 0 # INPUT -> PROXIMITY
+    # INPUT -> PROXIMITY  ---------------------------- LAYER 0
+    layer = 0 
 
     hf = compositionFunction[layer]
     g = activationFunction[layer]
     f = outputFunction[layer]
 
-    h_prox = [ann.inputComposition(distances[n], [], [], hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
-    a_prox = [ann.activationLevel(h, g) for h in h_prox] # activation level of each neuron in the Proximity Layer 0
-    outputs[layer] = [ann.neuronOutput(a, f) for a in a_prox] # output level of each neuron that will be passed to the next layer
+    h_proximity = [ann.inputComposition(i = distances[n], o = [], w = [],h = hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
+    a_proximity = [ann.activationLevel(h_proximity[i], g) for i in range(0, len(h_proximity))] # activation level of each neuron in the Proximity Layer 0
+    outputs[layer] = [ann.neuronOutput(a_proximity[i], f) for i in range(0,len(a_proximity))] # output level of each neuron that will be passed to the next layer
     
-    layer += 1 # INPUT -> COLLISION
+    #----------------------------------------------------------
 
+    # PROXIMITY -> COLLISION -------------------------- LAYER 1
+
+    layer += 1 
+    
     w = connectivities[layer]
     o = outputs[layer - 1] # Proximity Layer Output
     hf = compositionFunction[layer]
     g = activationFunction[layer]
     f = outputFunction[layer]
 
-    h_col = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
-    a_col = [ann.activationLevel(h, g) for h in h_col]
-    outputs[layer] = [ann.neuronOutput(a, f) for a in a_col]
+    h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
+    a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0,len(h_collision))]
+    outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0,len(a_collision))]
 
-    layer += 1 # OUTPUT -> MOTORS
+    #-----------------------------------------------------------
 
-    w = connectivities[layer]
+    # COLLISION -> MOTORS -----------------------------  LAYER 2
+    layer += 1 
+
+    #w = connectivities[layer]
     o = outputs[layer - 1] # Collision Layer Output
     hf = compositionFunction[layer]
     g = activationFunction[layer]
     f = outputFunction[layer]
+
+    """
+    #Version 1 => 2 motor neuron
     step = int(len(o)/len(motors))
     
     # since the last layer is not fully connected, get slices of the output from the collision layer by *steps*
     # in this case to each motor is provided half (2 motors) of the outputs array: 
     # 0-3 are those on the right motor side
     # 4-7 are those on the left motor side
-    h_col = [ann.inputComposition([], o[n*step:(n+1)*step], w[n], hf) for n in range(0, len(motors))]
-    a_col = [ann.activationLevel(h, g) for h in h_col]
-    outputs[layer] = [ann.neuronOutput(a, f) for a in a_col]
+    h_motor = [ann.inputComposition([], o[n*step:(n+1)*step], w[n], hf) for n in range(0, len(motors))]
+    """
 
-    ##########################################################################################
+    #Version 2 => 3 motor neuron   
+    collisionMotorNeuronsConn = connectivities[layer]
+    h_motor = []
+    for connToMotorAction in collisionMotorNeuronsConn:
+        oConn = []
+        weight = []
+        for connection in connToMotorAction: 
+            oConn.append(o[connection[0]])
+            weight.append(connection[1])
+        h_motor.append((ann.inputComposition([], oConn, weight, hf)))
 
-    rv, lv = (outputs[layer][0], outputs[layer][1])
+    print("composed input")        
+    print(h_motor)
+    a_motor = [ann.activationLevel(h_motor[i], g) for i in range(0,len(h_motor))]
+
+    outputs[layer] = [ann.neuronOutput(a_motor[i], lambda x: f(x, len(collisionMotorNeuronsConn[i]))) for i in range(0,len(a_motor))]
+
+    #--------------------------------------------------------------
+
+    # ~~~~~~~~~~~~~~~~~ END PROCESS CURRENT STATE ~~~~~~~~~~~~~~~~~~~~~~~~
     
+
+
+
+
+    # ~~~~~~~~~~~~~~~~~ CALCULATE NEW MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    """
+    # Version 1-> 2 neuron in motor layer
+    rv, lv = (outputs[layer][0], outputs[layer][1])
+    """
+
+    # Version 2 -> 5 neuron in the motor layer
+    #get the extreme motor neuron value and subtract the output of the center motor neuron
+    
+    print("Collision neurons output")
+    print(outputs[1])
+    motorLayerOutputs = outputs[2]
+    print("Motor command neurons output")
+    print(motorLayerOutputs)
+
+    lv, rv = wheelVelocity(motorLayerOutputs[0], motorLayerOutputs[1], motorLayerOutputs[2])
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+    print(f"Speed:{lv}, {rv}")
+    # Enter here functions to send actuator commands:
+    motors['left'].device.setVelocity(lv)
+    motors['right'].device.setVelocity(rv)
+
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Now apply what It has learned
     # Weights Updates
     connectivities.update({1: ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)})
+    
+    """
     connectivities.update({2:
         ann.updateConnectivities(connectivities[2], outputs[2][:1], outputs[1][:step], LEARNING_RATE, FORGET_RATE) +
         ann.updateConnectivities(connectivities[2], outputs[2][1:], outputs[1][step:], LEARNING_RATE, FORGET_RATE)
     })
-
-    # print(f"Speed:{lv}, {rv}")
-        
-    # Enter here functions to send actuator commands:
-    motors['left'].device.setVelocity(lv)
-    motors['right'].device.setVelocity(rv)
+    """
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     pass
 
