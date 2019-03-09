@@ -18,18 +18,11 @@ def reverse(velRight, velLeft):
     return -velRight, velLeft
 
 def turnLeft(velocity):
-    #return toDifferentialModel(velocity, degToRad(-9), AXLE_LENGTH)
     return _stub_movement(velocity, -PI/12)
 
 def turnRight(velocity):
-    #return toDifferentialModel(velocity, degToRad(9), AXLE_LENGTH)
     return _stub_movement(velocity, PI/12)
 
-def turnLeft1Deg(velocity):
-    return toDifferentialModel(velocity, degToRad(-1), AXLE_LENGTH)
-
-def turnRight1Deg(velocity):
-    return toDifferentialModel(velocity, degToRad(1), AXLE_LENGTH)
 
 
 def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = 1.0):
