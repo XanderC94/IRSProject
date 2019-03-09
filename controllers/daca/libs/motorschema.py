@@ -34,9 +34,8 @@ class PerceptionSchema:
 
     @staticmethod
     def obstaclePerceptor(magnitudes, radians, strat = lambda magnitudes, radians: (float, float)):
-        res, theta = strat(magnitudes, radians)
-
-        return (0, EPUCK_FRONT_RAD) if res < 0.5 else (res, theta + PI)
+       res, theta = strat([math.exp(-m) for m in magnitudes], radians)
+       return (0, EPUCK_FRONT_RAD) if res < 0.5 else (res, theta + PI)
     
     @staticmethod
     def mergePerception(magnitudes, radians, strat = lambda magnitudes, radians: (float, float)):
