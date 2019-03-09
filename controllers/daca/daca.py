@@ -27,8 +27,11 @@ FORGET_RATE = 0.3 #float(opt['frate'])
 COLLISION_THRESHOLD = 0.5 #float(opt['coll-ths'])
 LEARNING_RATE = 0.1 #float(opt['lrate'])
 FORGET_RATE = 0.5 #float(opt['frate'])
+
+
 RESPONSE_THRESHOLD = 1;
 ####################################################################################################
+
 """
 # NETWORK STRUCTURE - Version 1 => 2 neurons in the motor layer ~~~~~~~~~
 
@@ -51,12 +54,14 @@ outputs = {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
-# NETWORK STRUCTURE - Version 2 => 3 neurons in the motor layer.  ~~~~~~
-# From reference paper Distributed adaptive control: The self-organization of structured behavior
-nMotorsResponsegNeurons = 5
+#~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
+collToMotConnOrder = [5,6,7,0,1,2]
+collisionToMotorConnections = [[[5,1.0],[6,1.0], [7,1.0]], [[7,1.0],[0,1.0]], [[0,1.0],[1,1.0],[2,1.0]]]
+
+nMotorsResponsegNeurons = 3
 connectivities = {
     1: ann.matrix(nBumpers, nDistanceSensors, gen = lambda:0.0), # Collision <- Proximity ==> FULLY CONNECTED
-    2: [[[5,1.0],[6,1.0]], [[6,1.0], [7,1.0]], [[7,1.0],[0,1.0]], [[0,1.0],[1,1.0]], [[1,1.0],[2,1.0]]] # Output <- Collision, not fully connected but left bumpers connected to left motor and right bumpers to right motor
+    2: collisionToMotorConnections # Motor Command <- Collision, not fully connected 
 }
 
 # layer -> output
@@ -69,14 +74,17 @@ outputs = {
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Neuron Functions ############################################
+###################### Neuron Functions ############################################ 
+# sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w 
+#  '-> compositionFunction[layer]  
+#       '-> activationFunction[layer]  
+#           '->  outputFunction[layer] as o
 
 # sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 
-
 compositionFunction = {
     0: lambda sIn, o, w: sIn,
     1: lambda sIn, plOut, wij: sIn + ann.weightedSum(wij, plOut),
-    2: lambda i, plOut, wij: ann.weightedSum(wij, plOut) # (?)
+    2: lambda i, plOut, wij: ann.weightedSum(wij, plOut) # wij is the degree
 }
 
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer]) 
@@ -87,12 +95,12 @@ activationFunction = {
     2: lambda h: ann.ActivationFunction.linear(h) # Maybe should be the conversion to motor speed?
 }
 """
-
 activationFunction = {
     0: lambda h: ann.ActivationFunction.logistic(h), # Logistic (?) or Linear (?)
     1: lambda h: ann.ActivationFunction.linear_threshold(h, COLLISION_THRESHOLD),
     2: lambda h: ann.ActivationFunction.linear_threshold(h, RESPONSE_THRESHOLD) # Maybe should be the conversion to motor speed?
 }
+
 # activationLevel[layer] as a -> output[layer] as o
 # the final value that will be propagated to each one of the connected neurons bearing activactionLevel a
 """
@@ -105,7 +113,7 @@ outputFunction = {
 outputFunction = {
     0: lambda a: a,
     1: lambda a: a,
-    2: lambda a: a # Motors output are between [1, and MAX_V]
+    2: lambda a: a 
 }
 #################################################################
 
@@ -155,7 +163,7 @@ while robot.step(timestep) != -1:
 
     if 1 in bumps: print("TOUCHING!")
     
-    # Process sensor data here. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Process current networkstate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     # INPUT -> PROXIMITY  ##########################
     layer = 0 
@@ -224,7 +232,7 @@ while robot.step(timestep) != -1:
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    #CALCULATE NEW MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # CALCULATE NEW MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     """
     # Version 1-> 2 neuron in motor layer
@@ -234,24 +242,21 @@ while robot.step(timestep) != -1:
     # Version 2 -> 5 neuron in the motor layer
     #get the extreme motor neuron value and subtract the output of the center motor neuron
     motorLayerOutputs = outputs[2]
+    print("Motor command neurons output")
+    print(motorLayerOutputs)
+
     lv, rv = 0,0
-    if motorLayerOutputs[2] or (motorLayerOutputs[1] and motorLayerOutputs[3]):
-        lv, rv = reverse()
+    if a_motor[1] or (a_motor[0] and a_motor[2]):
+        lv, rv = reverse(motorLayerOutputs[2])
         print("Reverse");
-    elif motorLayerOutputs[1]:
-        lv, rv = turnRight9Deg()
+    elif a_motor[0]:
+        lv, rv = turnRight9Deg(motorLayerOutputs[0])
         print("turnRight9Deg");
-    elif motorLayerOutputs[3]:
-        lv, rv = turnLeft9Deg()
+    elif a_motor[2]:
+        lv, rv = turnLeft9Deg(motorLayerOutputs[2])
         print("turnLeft9Deg");
-    elif motorLayerOutputs[0]:
-        lv, rv = turnRight1Deg()
-        print("turnRight1Deg");
-    elif motorLayerOutputs[4]:
-        lv, rv = turnLeft1Deg()
-        print("turnLeft1Deg");
     else:
-        lv, rv = advance()
+        lv, rv = advance(1.0)
         print("advance");
 
 
