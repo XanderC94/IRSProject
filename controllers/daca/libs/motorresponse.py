@@ -3,24 +3,48 @@ from libs.motor import *
 
 degToRad = lambda degrees: degrees * PI / 180
 
-def deltaFromFront(radiant):
-    translatedRad = radiant + EPUCK_FRONT_RAD
+def _stub_movement(velocity, theta):
+    lv,rv = toDifferentialModel(velocity, theta, AXLE_LENGTH)
+    return lv * sign(theta), rv * sign(theta)
+
+def deltaFromFront(radians):
+    translatedRad = radians + EPUCK_FRONT_RAD
     return translatedRad if translatedRad < PI else 2*PI - translatedRad
 
 def advance(velocity):
     return toDifferentialModel(velocity, 0, AXLE_LENGTH)
     
-def reverse(velocity):
-    return toDifferentialModel(velocity, -PI, AXLE_LENGTH)
+def reverse(velRight, velLeft):
+    return -velRight, velLeft
 
-def turnLeft9Deg(velocity):
-    return toDifferentialModel(velocity, degToRad(-9), AXLE_LENGTH)
+def turnLeft(velocity):
+    #return toDifferentialModel(velocity, degToRad(-9), AXLE_LENGTH)
+    return _stub_movement(velocity, -PI/12)
+
+def turnRight(velocity):
+    #return toDifferentialModel(velocity, degToRad(9), AXLE_LENGTH)
+    return _stub_movement(velocity, PI/12)
 
 def turnLeft1Deg(velocity):
     return toDifferentialModel(velocity, degToRad(-1), AXLE_LENGTH)
 
-def turnRight9Deg(velocity):
-    return toDifferentialModel(velocity, degToRad(9), AXLE_LENGTH)
-
 def turnRight1Deg(velocity):
     return toDifferentialModel(velocity, degToRad(1), AXLE_LENGTH)
+
+
+def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = 1.0):
+    areBothZero = lambda: oLeftNeuron == 0 and oRightNeuron == 0
+    lv,rv = (defaultVelocity, defaultVelocity) if areBothZero() else (oLeftNeuron, oRightNeuron)
+
+    if reverseNeuron != 0:
+        if min(oLeftNeuron, oRightNeuron) == oLeftNeuron:
+            lv = -lv
+        else:
+            rv = -rv   
+    elif lv == 0.0:
+        lv = defaultVelocity
+    elif rv == 0.0:
+        rv = defaultVelocity
+    
+    
+    return lv,rv

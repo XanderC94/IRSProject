@@ -24,12 +24,12 @@ FORGET_RATE = 0.3 #float(opt['frate'])
 """
 
 #Reference paper value
-COLLISION_THRESHOLD = 0.5 #float(opt['coll-ths'])
+COLLISION_THRESHOLD = 1.0 #float(opt['coll-ths'])
 LEARNING_RATE = 0.1 #float(opt['lrate'])
 FORGET_RATE = 0.5 #float(opt['frate'])
 
 
-RESPONSE_THRESHOLD = 1;
+RESPONSE_THRESHOLD = 2;
 ####################################################################################################
 
 """
@@ -55,10 +55,13 @@ outputs = {
 """
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
-collToMotConnOrder = [5,6,7,0,1,2]
-collisionToMotorConnections = [[[5,1.0],[6,1.0], [7,1.0]], [[7,1.0],[0,1.0]], [[0,1.0],[1,1.0],[2,1.0]]]
-
-nMotorsResponsegNeurons = 3
+collToMotConnOrder = [5,6,7,0,1,2, 3,4]
+collisionToMotorConnections = [
+    [[4, 1.0],[5,1.0],[6,1.0],[7,1.0]], 
+    [[7,1.0],[0,1.0]], 
+    [[0,1.0],[1,1.0],[2,1.0],[3, 1.0]]
+] 
+    
 connectivities = {
     1: ann.matrix(nBumpers, nDistanceSensors, gen = lambda:0.0), # Collision <- Proximity ==> FULLY CONNECTED
     2: collisionToMotorConnections # Motor Command <- Collision, not fully connected 
@@ -69,7 +72,7 @@ connectivities = {
 outputs = {
     0: ann.array(nDistanceSensors), # output: Proximity -> Collision
     1: ann.array(nBumpers), # output: Collison -> Motor
-    2: ann.array(nMotorsResponsegNeurons) # output: Motor -> ...
+    2: ann.array(len(collisionToMotorConnections)) # output: Motor -> ...
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,8 +99,8 @@ activationFunction = {
 }
 """
 activationFunction = {
-    0: lambda h: ann.ActivationFunction.logistic(h), # Logistic (?) or Linear (?)
-    1: lambda h: ann.ActivationFunction.linear_threshold(h, COLLISION_THRESHOLD),
+    0: lambda h: ann.ActivationFunction.sigmoid(h), # Logistic (?) or Linear (?)
+    1: lambda h: ann.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
     2: lambda h: ann.ActivationFunction.linear_threshold(h, RESPONSE_THRESHOLD) # Maybe should be the conversion to motor speed?
 }
 
@@ -113,7 +116,7 @@ outputFunction = {
 outputFunction = {
     0: lambda a: a,
     1: lambda a: a,
-    2: lambda a: a 
+    2: lambda a, nPlOutput: a * PI/nPlOutput  
 }
 #################################################################
 
@@ -173,8 +176,8 @@ while robot.step(timestep) != -1:
     f = outputFunction[layer]
 
     h_proximity = [ann.inputComposition(i = distances[n], o = [], w = [],h = hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
-    a_proximity = [ann.activationLevel(h, g) for h in h_proximity] # activation level of each neuron in the Proximity Layer 0
-    outputs[layer] = [ann.neuronOutput(a, f) for a in a_proximity] # output level of each neuron that will be passed to the next layer
+    a_proximity = [ann.activationLevel(h_proximity[i], g) for i in range(0, len(h_proximity))] # activation level of each neuron in the Proximity Layer 0
+    outputs[layer] = [ann.neuronOutput(a_proximity[i], f) for i in range(0,len(a_proximity))] # output level of each neuron that will be passed to the next layer
     
     #################################################
 
@@ -189,8 +192,8 @@ while robot.step(timestep) != -1:
     f = outputFunction[layer]
 
     h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
-    a_collision = [ann.activationLevel(h, g) for h in h_collision]
-    outputs[layer] = [ann.neuronOutput(a, f) for a in a_collision]
+    a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0,len(h_collision))]
+    outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0,len(a_collision))]
 
     ################################################
 
@@ -224,9 +227,12 @@ while robot.step(timestep) != -1:
             oConn.append(o[connection[0]])
             weight.append(connection[1])
         h_motor.append((ann.inputComposition([], oConn, weight, hf)))
-            
-    a_motor = [ann.activationLevel(h, g) for h in h_motor]
-    outputs[layer] = [ann.neuronOutput(a, f) for a in a_motor]
+
+    print("composed input")        
+    print(h_motor)
+    a_motor = [ann.activationLevel(h_motor[i], g) for i in range(0,len(h_motor))]
+
+    outputs[layer] = [ann.neuronOutput(a_motor[i], lambda x: f(x, len(collisionMotorNeuronsConn[i]))) for i in range(0,len(a_motor))]
 
     ##################################################
 
@@ -241,23 +247,18 @@ while robot.step(timestep) != -1:
 
     # Version 2 -> 5 neuron in the motor layer
     #get the extreme motor neuron value and subtract the output of the center motor neuron
+    
+    print("Collision neurons output")
+    print(outputs[1])
     motorLayerOutputs = outputs[2]
     print("Motor command neurons output")
     print(motorLayerOutputs)
 
-    lv, rv = 0,0
-    if a_motor[1] or (a_motor[0] and a_motor[2]):
-        lv, rv = reverse(motorLayerOutputs[2])
-        print("Reverse");
-    elif a_motor[0]:
-        lv, rv = turnRight9Deg(motorLayerOutputs[0])
-        print("turnRight9Deg");
-    elif a_motor[2]:
-        lv, rv = turnLeft9Deg(motorLayerOutputs[2])
-        print("turnLeft9Deg");
-    else:
-        lv, rv = advance(1.0)
-        print("advance");
+
+    isActive = lambda x : x != 0 
+    isReverse = lambda : isActive(a_motor[1])
+
+    lv, rv = wheelVelocity(motorLayerOutputs[0], motorLayerOutputs[1], motorLayerOutputs[2])
 
 
 
