@@ -1,4 +1,4 @@
-from libs.epuck import *
+from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, PI
 import libs.annutils as ann
 
 """
@@ -14,6 +14,7 @@ FORGET_RATE = 0.5 #float(opt['frate'])
 
 #################################################
 
+MOTOR_THRESHOLD = 1;
 RESPONSE_THRESHOLD = 2;
 
 """
@@ -40,24 +41,41 @@ outputs = {
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
 
-collToMotConnOrder = [5,6,7,0,1,2, 3,4]
-collisionToMotorConnections = [
-    [[4, 1.0],[5,1.0],[6,1.0],[7,1.0]], 
-    [[7,1.0],[0,1.0]], 
-    [[0,1.0],[1,1.0],[2,1.0],[3, 1.0]]
-] 
+collToMotConnOrder = {
+    'left': [4, 5, 6, 7],
+    'right': [0, 1, 2, 3], 
+    'front': [0, 7],
+    'rear': [3, 4]
+}
+
+proximityToCollisionConnections = ann.matrix(nBumpers, nDistanceSensors)
+
+collisionToReverseConnections = ann.sparselyConnected([0], [[7, 0]], gen = lambda:1.0)
+
+# collisionToReverseConnections = [
+#     [[7,1.0],[0,1.0]]
+# ]
     
+collisionToMotorConnections = ann.sparselyConnected(range(0, nMotors), [[4, 5, 6, 7], [0, 1, 2, 3]], gen = lambda:1.0)
+
+# collisionToMotorConnections = [
+#     [[4, 1.0],[5, 1.0],[6, 1.0],[7, 1.0]],  
+#     [[0, 1.0],[1, 1.0],[2, 1.0],[3, 1.0]]
+# ]
+
 connectivities = {
-    1: ann.matrix(nBumpers, nDistanceSensors, gen = lambda:0.0), # Collision <- Proximity ==> FULLY CONNECTED
-    2: collisionToMotorConnections # Motor Command <- Collision, not fully connected 
+    1: proximityToCollisionConnections, # Collision <- Proximity ==> FULLY CONNECTED
+    2: collisionToReverseConnections,  # Reverse Command <- Collision, not fully connected 
+    3: collisionToMotorConnections # Motor Command <- Collision, not fully connected 
 }
 
 # layer -> output
 # results of f(activation[i]) where f is the output function
 outputs = {
     0: ann.array(nDistanceSensors), # output: Proximity -> Collision
-    1: ann.array(nBumpers), # output: Collison -> Motor
-    2: ann.array(len(collisionToMotorConnections)) # output: Motor -> ...
+    1: ann.array(nBumpers), # output: Collison -> Motor, Reverse
+    2: ann.array(len(collisionToReverseConnections)), # output: Reverse -> ...
+    3: ann.array(len(collisionToMotorConnections)) # output: Motor -> ...
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,36 +90,27 @@ outputs = {
 compositionFunction = {
     0: lambda sIn, o, w: sIn,
     1: lambda sIn, plOut, wij: sIn + ann.weightedSum(wij, plOut),
-    2: lambda i, plOut, wij: ann.weightedSum(wij, plOut) # wij is the degree
+    2: lambda i, plOut, wij: ann.weightedSum(wij, plOut), # wij is the degree
+    3: lambda i, plOut, wij: ann.weightedSum(wij, plOut) # wij is the degree
 }
 
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer]) 
-"""
-activationFunction = {
-    0: lambda h: ann.ActivationFunction.logistic(h), # Logistic (?) or Linear (?)
-    1: lambda h: ann.ActivationFunction.linear_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: ann.ActivationFunction.linear(h) # Maybe should be the conversion to motor speed?
-}
-"""
+
 activationFunction = {
     0: lambda h: ann.ActivationFunction.sigmoid(h), 
     1: lambda h: ann.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: ann.ActivationFunction.linear_threshold(h, RESPONSE_THRESHOLD) 
+    2: lambda h: ann.ActivationFunction.binary_threshold(h, RESPONSE_THRESHOLD),
+    3: lambda h: ann.ActivationFunction.linear_threshold(h, MOTOR_THRESHOLD) 
 }
 
 # activationLevel[layer] as a -> output[layer] as o
 # the final value that will be propagated to each one of the connected neurons bearing activactionLevel a
-"""
+
 outputFunction = {
     0: lambda a: a,
     1: lambda a: a,
-    2: lambda a: min(a, MAX_V - 1) + 1 # Motors output are between [1, and MAX_V]
-}
-"""
-outputFunction = {
-    0: lambda a: a,
-    1: lambda a: a,
-    2: lambda a, nPlOutput: a * PI/nPlOutput  
+    2: lambda a: a,
+    3: lambda a: a * PI / len(collisionToMotorConnections[0])  
 }
 
 #################################################################

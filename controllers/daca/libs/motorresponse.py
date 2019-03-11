@@ -7,10 +7,6 @@ def _stub_movement(velocity, theta):
     lv,rv = toDifferentialModel(velocity, theta, AXLE_LENGTH)
     return lv * sign(theta), rv * sign(theta)
 
-def deltaFromFront(radians):
-    translatedRad = radians + EPUCK_FRONT_RAD
-    return translatedRad if translatedRad < PI else 2*PI - translatedRad
-
 def advance(velocity):
     return toDifferentialModel(velocity, 0, AXLE_LENGTH)
     
@@ -22,7 +18,6 @@ def turnLeft(velocity):
 
 def turnRight(velocity):
     return _stub_movement(velocity, PI/12)
-
 
 
 def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = 1.0):

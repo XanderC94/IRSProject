@@ -1,4 +1,5 @@
 import math, operator
+from libs.sensor import ids
 
 WHEEL_RADIUS = 0.02 #m
 AXLE_LENGTH = 0.052 #m
@@ -27,3 +28,10 @@ distance_sensor_template = 'ps{id}'
 light_sensor_template = 'ls{id}'
 led_template = 'led{id}'
 bumper_template = 'bs{id}'
+
+class ID:
+    distances = ids(distance_sensor_template, nDistanceSensors)
+    lights = ids(light_sensor_template, nLightSensors)
+    leds = ids(led_template, nLEDs)
+    motors = {'left':'left wheel motor', 'right':'right wheel motor'}
+    bumpers = ids(bumper_template, nBumpers)
