@@ -31,9 +31,9 @@ def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = MI
             lv = -lv
         else:
             rv = -rv   
-    elif lv == 0.0:
-        lv = defaultVelocity
-    elif rv == 0.0:
-        rv = defaultVelocity
+    # elif lv == 0.0:
+    #     lv = defaultVelocity
+    # elif rv == 0.0:
+    #     rv = defaultVelocity
     
     return lv,rv

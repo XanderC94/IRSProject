@@ -156,8 +156,7 @@ while robot.step(timestep) != -1:
     """
 
     # Version 2 -> 5 neuron in the motor layer
-    #get the extreme motor neuron value and subtract the output of the center motor neuron
-    
+    # get the extreme motor neuron value and subtract the output of the center motor neuron
     print(f"Collision Layer output {outputs[1]}")
     reverseLayerOutput = outputs[2]
     motorLayerOutputs = outputs[3]

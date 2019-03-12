@@ -8,9 +8,9 @@ FORGET_RATE = 0.3 #float(opt['frate'])
 """
 
 # Reference paper value #########################
-COLLISION_THRESHOLD = 0.5 #float(opt['coll-ths'])
-LEARNING_RATE = 0.05 #float(opt['lrate'])
-FORGET_RATE = 0.5 #float(opt['frate'])
+COLLISION_THRESHOLD = 0.65 # float(opt['coll-ths'])
+LEARNING_RATE = 0.05 # float(opt['lrate'])
+FORGET_RATE = 0.8 # float(opt['frate'])
 
 #################################################
 
