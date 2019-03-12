@@ -1,5 +1,12 @@
 import math, operator
 
+def logicSum(booleanValues: list) -> bool:
+    result = 0
+    for val in booleanValues:
+        result = result or val 
+    return result
+
+
 def sparselyConnected(currLayer:list, prevLayer:dict or list, gen: lambda: float = lambda:0.0) -> dict:
     w = {}
 
