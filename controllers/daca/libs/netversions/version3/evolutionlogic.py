@@ -74,14 +74,13 @@ def processMotorLayer():
     outputs[layer] = [ann.neuronOutput(a_motor[i], f) for i in range(0,len(a_motor))]
 
 
-def processAnnState(distances:list, bumps:list) -> dict: 
+def processAnnState(distances:list, bumps:list): 
     # ~~~~~~~~~~~~~~~~~ PROCESS ANN STATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
     processProxymityLayer(distances)
     processCollisionLayer(bumps)
     processReverseLayer()
     processMotorLayer()
     #--------------------------------------------------------------
-    return outputs
 
 def updateWeight():
     # Now apply what It has learned
