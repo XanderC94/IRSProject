@@ -45,7 +45,7 @@ def matrix(rn : int, cn : int, gen: lambda: float = lambda: 0.0) -> list:
     return [array(cn, gen) for i in range(0, rn)]
 
 def array(n: int, gen: lambda: float = lambda: 0.0) -> list:
-    return [float(gen()) for i in range(0, n)]
+    return [gen() for i in range(0, n)]
 
 def pair(key, value): return {key:value}
 
@@ -64,19 +64,20 @@ def activationLevel(hi : float, g : lambda h: float) -> float:
 def neuronOutput(ai : float, f = lambda a: a) -> float:
     return f(ai)
 
-def updateConnectivities(w : list, currLayerOutput : list, prevLayerOutput: list, lrate : float, frate : float) -> list:
+def updateConnectivities(w : list, currLayerOutput : list, prevLayerOutput: list, learnRate : float, forgetRate : float) -> list:
     
-        om = mean(currLayerOutput) # mean output level of the current layer
-        M = len(currLayerOutput)
-        N = len(prevLayerOutput)
+        meanCurrOutput = mean(currLayerOutput) # mean output level of the current layer
+        m = len(currLayerOutput)
+        n = len(prevLayerOutput)
 
-        # i <- neuron of the current layer, j <- neuron of the previous layer
+        # | N[j]: prevLayer |-- w[i][j] -->| M[i]: currLayer |
+        # i <- neuron of the current layer A, j <- neuron of the previous layer B
         return [
                 [
-                    w[i][j] + (lrate * currLayerOutput[i] * prevLayerOutput[j] - frate * om * w[i][j]) / N
-                    for j in range(0, N)
+                    w[i][j] + (learnRate * currLayerOutput[i] * prevLayerOutput[j] - forgetRate * meanCurrOutput * w[i][j]) / n
+                    for j in range(0, n)
                 ]
-                for i in range(0, M)
+                for i in range(0, m)
             ]
 
 class ActivationFunction:
