@@ -1,4 +1,4 @@
-from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, PI
+from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as ann
 
 """
@@ -99,7 +99,7 @@ outputFunction = {
     0: lambda a: a,
     1: lambda a: a,
     2: lambda a: a,
-    3: lambda a: a * PI / len(collisionToMotorConnections[0])  
+    3: lambda a: a * MIN_V # Motor output bounded between [0, MIN_V * || w[i] ||]
 }
 
 #################################################################
