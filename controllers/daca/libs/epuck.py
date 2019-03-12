@@ -1,5 +1,6 @@
-import math, operator
+import sys, math, operator
 from libs.sensor import ids
+from libs.argutils import parseArgs
 
 WHEEL_RADIUS = 0.02 #m
 AXLE_LENGTH = 0.052 #m
@@ -19,7 +20,12 @@ nLightSensors = 9
 nMotors = 2
 nBumpers = 8
 
-MIN_V = PI /  (nBumpers / 4)
+_opt = parseArgs(sys.argv)
+
+MIN_V = PI / (nBumpers / 2)
+
+if 'version' in _opt and _opt['version'] == '3':
+    MIN_V = 2 * PI / (nBumpers / 2)
 
 lss_rad = [1.27, 0.77, 0.0, 5.21, 4.21, 3.14159, 2.37, 1.87, 1.58784]
 dss_rad = [1.27, 0.77, 0.0, 5.21, 4.21, 3.14159, 2.37, 1.87]

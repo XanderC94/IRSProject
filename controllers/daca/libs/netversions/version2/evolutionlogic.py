@@ -1,10 +1,15 @@
 import libs.annutils as ann
-from libs.netversions.version3.neuralnetstructure import *
+from libs.netversions.version2.neuralnetstructure import outputs, LEARNING_RATE, FORGET_RATE
+from libs.netversions.version2.neuralnetstructure import outputFunction
+from libs.netversions.version2.neuralnetstructure import activationFunction
+from libs.netversions.version2.neuralnetstructure import compositionFunction
+from libs.netversions.version2.neuralnetstructure import connectivities
 
 from libs.motorresponse import wheelVelocity
 
 def processProxymityLayer(distances):
     # DISTANCES_INPUT -> PROXIMITY  ---------------------------- LAYER 0
+
     layer = 0 
 
     hf = compositionFunction[layer]
@@ -17,6 +22,7 @@ def processProxymityLayer(distances):
     
 def processCollisionLayer(bumps):
     # COLLISIONS_INPUT, PROXIMITY -> COLLISION -------------------------- LAYER 1
+
     layer = 1 
     
     w = connectivities[layer]
@@ -25,10 +31,7 @@ def processCollisionLayer(bumps):
     g = activationFunction[layer]
     f = outputFunction[layer]
 
-    #h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
-    bumperOutputByConnection = ann.mapToSensorsOutput(bumps, bumpersConnections)
-    h_collision = [ann.inputComposition(bumperOutputByConnection[n], o, w[n], hf) for n in range(0, nCollisionNodes)]
-    
+    h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
     a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
     outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
 
@@ -39,6 +42,7 @@ def processCollisionLayer(bumps):
 
 def processReverseLayer():
     # COLLISION -> REVERSE -----------------------------  LAYER 2
+
     layer = 2 
 
     #w = connectivities[layer]
@@ -52,11 +56,13 @@ def processReverseLayer():
     print(f"reverse layer composed input: {h_reverse}")
 
     a_reverse = [ann.activationLevel(h_reverse[i], g) for i in range(0,len(h_reverse))]
+
     outputs[layer] = [ann.neuronOutput(a_reverse[i], f) for i in range(0, len(a_reverse))]
 
 def processMotorLayer():
-    # COLLISION -> MOTORS -----------------------------  LAYER 3
-    layer = 3 
+   # COLLISION -> MOTORS -----------------------------  LAYER 3
+
+    layer = 3
 
     #w = connectivities[layer]
     o = outputs[layer - 2] # Collision Layer Output
@@ -65,14 +71,14 @@ def processMotorLayer():
     g = activationFunction[layer]
     f = outputFunction[layer]
 
-
+    #Version 2 => 2 motor neuron
     h_motor = ann.sparseInputComposition([], o, connectivities[layer], hf)
 
     print(f"motor layer composed input: {h_motor}")
 
     a_motor = [ann.activationLevel(h_motor[i], g) for i in range(0,len(h_motor))]
-    outputs[layer] = [ann.neuronOutput(a_motor[i], f) for i in range(0,len(a_motor))]
 
+    outputs[layer] = [ann.neuronOutput(a_motor[i], f) for i in range(0,len(a_motor))]
 
 def processAnnState(distances:list, bumps:list): 
     # ~~~~~~~~~~~~~~~~~ PROCESS ANN STATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
