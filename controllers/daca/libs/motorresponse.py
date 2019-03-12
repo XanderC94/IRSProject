@@ -1,5 +1,5 @@
-from libs.epuck import *
-from libs.motor import *
+from libs.epuck import PI, AXLE_LENGTH, MIN_V
+from libs.motor import toDifferentialModel, sign
 
 degToRad = lambda degrees: degrees * PI / 180
 
@@ -20,12 +20,14 @@ def turnRight(velocity):
     return _stub_movement(velocity, PI/12)
 
 
-def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = 1.0):
-    areBothZero = lambda: oLeftNeuron == 0 and oRightNeuron == 0
-    lv,rv = (defaultVelocity, defaultVelocity) if areBothZero() else (oLeftNeuron, oRightNeuron)
+def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = MIN_V):
+
+    areBothZero = (oLeftNeuron == 0 and oRightNeuron == 0)
+    
+    lv,rv = (defaultVelocity, defaultVelocity) if areBothZero else (oLeftNeuron, oRightNeuron)
 
     if reverseNeuron != 0:
-        if min(oLeftNeuron, oRightNeuron) == oLeftNeuron:
+        if oLeftNeuron < oRightNeuron:
             lv = -lv
         else:
             rv = -rv   
@@ -33,6 +35,5 @@ def wheelVelocity(oLeftNeuron, reverseNeuron, oRightNeuron, defaultVelocity = 1.
         lv = defaultVelocity
     elif rv == 0.0:
         rv = defaultVelocity
-    
     
     return lv,rv

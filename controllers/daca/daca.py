@@ -53,6 +53,9 @@ while robot.step(timestep) != -1:
     for k, s in dss.items(): distances.append(s.device.getValue())
     for k, s in bumpers.items(): bumps.append(s.device.getValue())
     
+    if 1 in bumps: print("TOUCHING!")
+    print(f"Distances:{distances}")
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # ~~~~~~~~~~~~~~~~~ PROCESS ANN STATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,6 +92,11 @@ while robot.step(timestep) != -1:
     
     a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
     outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
+
+    print(f"Proximity Layer Output {o}")
+    print(f"Weights Proximity to Collision:")
+    for i in range(0, len(w)): print(w[i])
+    print(f"Collision Layer Composed Input {h_collision}")
 
     #-----------------------------------------------------------
 
@@ -173,14 +181,9 @@ while robot.step(timestep) != -1:
     #~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Now apply what It has learned
     # Weights Updates
-    connectivities.update({1: ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)})
+    updatedWeights = ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)
+    connectivities.update({1: updatedWeights})
     
-    """
-    connectivities.update({2:
-        ann.updateConnectivities(connectivities[2], outputs[2][:1], outputs[1][:step], LEARNING_RATE, FORGET_RATE) +
-        ann.updateConnectivities(connectivities[2], outputs[2][1:], outputs[1][step:], LEARNING_RATE, FORGET_RATE)
-    })
-    """
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print()
