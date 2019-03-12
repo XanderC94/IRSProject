@@ -81,9 +81,12 @@ while robot.step(timestep) != -1:
     g = activationFunction[layer]
     f = outputFunction[layer]
 
+    #h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
+    
     bumperForSide = [bumps[:len(bumps)//2], bumps[len(bumps)//2:]]
 
     h_collision = [ann.inputComposition(bumperForSide[n], o, w[n], hf) for n in range(0, len(bumperForSide))]
+    
     a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
     outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
 
