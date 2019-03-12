@@ -14,6 +14,9 @@ import libs.motor as motor
 import libs.annutils as ann
 from libs.neuralnetstructure import *
 
+
+
+
 opt = parseArgs(sys.argv)
 
 print(opt)
@@ -76,7 +79,7 @@ while robot.step(timestep) != -1:
 
     # COLLISIONS_INPUT, PROXIMITY -> COLLISION -------------------------- LAYER 1
 
-    layer += 1 
+    layer = 1 
     
     w = connectivities[layer]
     o = outputs[layer - 1] # Proximity Layer Output
@@ -84,7 +87,10 @@ while robot.step(timestep) != -1:
     g = activationFunction[layer]
     f = outputFunction[layer]
 
-    h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
+    #h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
+    bumperOutputByConnection = ann.mapToSensorsOutput(bumps, bumpersConnections)
+    h_collision = [ann.inputComposition(bumperOutputByConnection[n], o, w[n], hf) for n in range(0, nCollisionNodes)]
+    
     a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
     outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
 
@@ -97,7 +103,7 @@ while robot.step(timestep) != -1:
 
     # COLLISION -> REVERSE -----------------------------  LAYER 2
 
-    layer += 1 
+    layer = 2 
 
     #w = connectivities[layer]
     o = outputs[layer - 1] # Collision Layer Output
@@ -115,7 +121,7 @@ while robot.step(timestep) != -1:
 
     # COLLISION -> MOTORS -----------------------------  LAYER 3
 
-    layer += 1 
+    layer = 3 
 
     #w = connectivities[layer]
     o = outputs[layer - 2] # Collision Layer Output
