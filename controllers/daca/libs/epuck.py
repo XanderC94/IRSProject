@@ -19,7 +19,7 @@ nLightSensors = 9
 nMotors = 2
 nBumpers = 8
 
-MIN_V = PI /  (nBumpers / 2)
+MIN_V = PI /  (nBumpers / 4)
 
 lss_rad = [1.27, 0.77, 0.0, 5.21, 4.21, 3.14159, 2.37, 1.87, 1.58784]
 dss_rad = [1.27, 0.77, 0.0, 5.21, 4.21, 3.14159, 2.37, 1.87]

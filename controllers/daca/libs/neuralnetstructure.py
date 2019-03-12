@@ -8,9 +8,9 @@ FORGET_RATE = 0.3 #float(opt['frate'])
 """
 
 # Reference paper value #########################
-COLLISION_THRESHOLD = 0.5 #float(opt['coll-ths'])
-LEARNING_RATE = 0.1 #float(opt['lrate'])
-FORGET_RATE = 0.9 #float(opt['frate'])
+COLLISION_THRESHOLD = 0.65 #float(opt['coll-ths'])
+LEARNING_RATE = 0.05 #float(opt['lrate'])
+FORGET_RATE = 0.8 #float(opt['frate'])
 
 #################################################
 
@@ -112,20 +112,13 @@ outputFunction = {
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 3  ~~~~~~~~~~~~~~~~~~~~~
 
-collToMotConnOrder = {
-    'left': [4, 5, 6, 7],
-    'right': [0, 1, 2, 3], 
-    'front': [0, 7],
-    'rear': [3, 4]
-}
-
 nCollisionNodes = 3
-bumpersLayer = ann.sparselyConnected(range(0, nCollisionNodes), [[3, 4], [ 5, 6, 7], [0, 1, 2]], gen = lambda:1.0)
+bumpersConnections = ann.sparselyConnected(range(0, nCollisionNodes), [[5, 6, 7], [3, 4], [0, 1, 2]], gen = lambda:1.0)
 
 proximityToCollisionConnections = ann.matrix(nCollisionNodes, nDistanceSensors)
 
-collisionToReverseConnections = ann.sparselyConnected([0], [[1, 2]], gen = lambda:1.0)
-collisionToMotorConnections = ann.sparselyConnected(range(0, nMotors), [[1], [2]], gen = lambda:1.0)
+collisionToReverseConnections = ann.sparselyConnected([0], [[0, 2]], gen = lambda:1.0)
+collisionToMotorConnections = ann.sparselyConnected(range(0, nMotors), [[0], [2]], gen = lambda:1.0)
 
 
 connectivities = {
@@ -164,7 +157,7 @@ compositionFunction = {
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer]) 
 
 activationFunction = {
-    0: lambda h: ann.ActivationFunction.linear(h), 
+    0: lambda h: ann.ActivationFunction.exp_inv(h), 
     1: lambda h: ann.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
     2: lambda h: ann.ActivationFunction.binary_threshold(h, REVERSE_THRESHOLD), 
     3: lambda h: ann.ActivationFunction.linear_threshold(h, MOTOR_THRESHOLD) 

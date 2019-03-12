@@ -1,5 +1,12 @@
 import math, operator
 
+def mapToSensorsOutput(sensorsOutput: list, connections: dict):
+    result = []
+    mapping = lambda x: list(sensorsOutput[i] for i in x)
+    for conn in connections.keys():
+        result.append(mapping(connections[conn]))
+    return result
+
 def logicSum(booleanValues: list) -> bool:
     result = 0
     for val in booleanValues:

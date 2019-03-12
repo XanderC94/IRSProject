@@ -14,6 +14,9 @@ import libs.motor as motor
 import libs.annutils as ann
 from libs.neuralnetstructure import *
 
+
+
+
 opt = parseArgs(sys.argv)
 
 print(opt)
@@ -85,10 +88,8 @@ while robot.step(timestep) != -1:
     f = outputFunction[layer]
 
     #h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
-    
-    bumperForSide = [bumps[:len(bumps)//2], bumps[len(bumps)//2:]]
-
-    h_collision = [ann.inputComposition(bumperForSide[n], o, w[n], hf) for n in range(0, len(bumperForSide))]
+    bumperOutputByConnection = ann.mapToSensorsOutput(bumps, bumpersConnections)
+    h_collision = [ann.inputComposition(bumperOutputByConnection[n], o, w[n], hf) for n in range(0, nCollisionNodes)]
     
     a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
     outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
