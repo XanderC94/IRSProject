@@ -53,4 +53,31 @@ def loadTrainedModel(model_file_name: str) -> TrainedModel:
     loaded_json["parameters"]["reverse_threshold"])
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
     return TrainedModel(loaded_json["version_name"], loaded_parameters, connectivities)
-      
+
+
+
+class Position:
+    def __init__(self, X, Y):
+        self.X = X
+        self.Y = Y
+
+class LogEntry:
+    def __init__(self, step_number: int, touched: bool, position: Position):
+        self.step_number = step_number
+        self.touched = touched
+        self.position = position
+
+class SimulationLog:
+    def __init__(self, model_name: str, log: list = []):
+        self.model_name=model_name;
+        self.log = log
+
+    def addLogEntry(entry: LogEntry):
+        self.log.append(entry)
+
+
+def saveSimulationLog(log:SimulationLog, directoryPath: str) -> str:
+    file_name = f"{directoryPath}SimLog{log.model_name}.json"
+    with open(file_name, 'w') as outfile:
+        json.dump(log.__dict__, outfile, default= lambda x: x.__dict__)
+    return file_name
