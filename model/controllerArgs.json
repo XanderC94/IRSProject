@@ -1,0 +1,11 @@
+{
+    "version": 2,
+    "coll-ths": 0.5,
+    "motor-ths": 0.5,
+    "reverse-ths": 0.5,
+    "frate": 0.1,
+    "lrate": 0.1,
+    "time": 1,
+    "mode": "train",
+    "modelDirectory": "../../model/"
+}
