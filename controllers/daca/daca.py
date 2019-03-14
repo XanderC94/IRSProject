@@ -10,21 +10,31 @@ from libs.argutils import parseArgs
 from libs.sensor import sensorArray
 from libs.motorresponse import wheelVelocity
 import libs.motor as motor
-
+from libs.utils import *
 # import libs.annutils as ann
 
 opt = parseArgs(sys.argv)
 
 print(opt)
+version_name=""
+if 'version' in opt 
+    if opt['version'] == '3':
+        # from libs.netversions.version3.neuralnetstructure import *
+        print("using ann v3")
+        import libs.netversions.version3.evolutionlogic as ann
+    else:
+        print("using ann v2")
+        # from libs.netversions.version2.neuralnetstructure import *
+        import libs.netversions.version2.evolutionlogic as ann
+    version_name = "Version"opt['version']
 
-if 'version' in opt and opt['version'] == '3':
-    # from libs.netversions.version3.neuralnetstructure import *
-    print("using ann v3")
-    import libs.netversions.version3.evolutionlogic as ann
-else:
-    print("using ann v2")
-    # from libs.netversions.version2.neuralnetstructure import *
-    import libs.netversions.version2.evolutionlogic as ann
+isTrainModeActive = False
+if 'mode' in opt and opt['mode'] == 'train':
+    isTrainModeActive = True
+
+modelDirectory = ""
+if 'modelDirectory' in opt:
+    modelDirectory=opt['modelDirectory']
 
 # Setup ------------------------------------
 
@@ -47,6 +57,9 @@ bumpers = sensorArray(ID.bumpers, timestep, lambda name: robot.getTouchSensor(na
 for k, m in motors.items():
     m.device.setPosition(float('+inf'))
     m.device.setVelocity(0.0)
+
+if !isTrainModeActive:
+    loadTrainedModel(modelPath)
 
 #-------------------------------------------------
 
@@ -79,6 +92,11 @@ while robot.step(timestep) != -1:
     print()
 
     pass
+
+if isTrainModeActive:
+    parameters = NetParameters(COLLISION_THRESHOLD, LEARNING_RATE, FORGET_RATE, MOTOR_THRESHOLD, REVERSE_THRESHOLD)
+    model = TrainedModel(version_name, parameters, connectivities)
+    saveTrainedModel(model, modelDirectory)
 
 # Enter here exit cleanup code.
 motors['left'].device.setVelocity(0.0)

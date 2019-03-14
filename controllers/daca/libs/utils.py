@@ -1,5 +1,4 @@
 import json
-import datetime
 
 class NetParameters:
     def __init__(self, 
@@ -25,8 +24,8 @@ class TrainedModel:
         return "Model version name: " + self.version_name + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
 
 
-def saveTrainedModel(model: TrainedModel, path: str) -> str:
-    model_name = path + model.version_name + str(datetime.datetime.now()) + ".json"
+def saveTrainedModel(model: TrainedModel, directoryPath: str) -> str:
+    model_name = directoryPath + model.version_name + ".json"
     with open(model_name, 'w') as outfile:
         json.dump(model.__dict__, outfile, default= lambda x: x.__dict__)
     return model_name
