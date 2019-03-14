@@ -68,6 +68,8 @@ if !isTrainModeActive:
     connectivities = loadedModel.connectivities
 #-------------------------------------------------
 
+n_touches = 0
+
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while robot.step(timestep) != -1:
@@ -79,7 +81,10 @@ while robot.step(timestep) != -1:
     for k, s in dss.items(): distances.append(s.device.getValue())
     for k, s in bumpers.items(): bumps.append(s.device.getValue())
     
-    if 1 in bumps: print("TOUCHING!")
+    if 1 in bumps: 
+        print("TOUCHING!")
+        n_touches += 1
+
     print(f"Distances:{distances}")
     
     ann.processAnnState(distances, bumps)
@@ -94,6 +99,7 @@ while robot.step(timestep) != -1:
     ann.updateWeights()
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    print(f"N° of touches: {n_touches}")
     print()
 
     pass
