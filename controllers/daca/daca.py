@@ -54,12 +54,12 @@ if 'simulatioLogPath' in opt:
 
 if not isTrainingModeActive:
     loadedModel = loadTrainedModel(modelPath)
-    nns.COLLISION_THRESHOLD = loadedModel.parameters.collision_treshold
-    nns.LEARNING_RATE = loadedModel.parameters.learning_rate
-    nns.FORGET_RATE = loadedModel.parameters.forget_rate
-    nns.MOTOR_THRESHOLD = loadedModel.parameters.motor_threshold
-    nns.REVERSE_THRESHOLD = loadedModel.parameters.reverse_threshold
-    nns.connectivities = loadedModel.connectivities
+
+    ann.setNetworkParameters(loadedModel.parameters)
+
+    ann.setNetworkConnectivities(loadedModel.connectivities)
+elif 'parameters' in opt:
+    ann.setNetworkParameters(opt['parameters'])
 
 # Setup ------------------------------------
 

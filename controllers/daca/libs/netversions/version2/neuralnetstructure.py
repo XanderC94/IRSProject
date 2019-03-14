@@ -1,38 +1,29 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
 
-# Reference paper value #########################
-COLLISION_THRESHOLD = 0.65 # float(opt['coll-ths'])
-LEARNING_RATE = 0.05 # float(opt['lrate'])
-FORGET_RATE = 0.8 # float(opt['frate'])
+# Learning Parameters #########################
 
-#################################################
-
-MOTOR_THRESHOLD = 1;
-REVERSE_THRESHOLD = 2;
+LEARNING_RATE = 0.05
+FORGET_RATE = 0.8
+COLLISION_THRESHOLD = 0.65
+MOTOR_THRESHOLD = 1
+REVERSE_THRESHOLD = 2
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
 
-collToMotConnOrder = {
-    'left': [4, 5, 6, 7],
-    'right': [0, 1, 2, 3], 
-    'front': [0, 7],
-    'rear': [3, 4]
-}
+_proximityToCollisionConnections = annutils.matrix(nBumpers, nDistanceSensors)
 
-proximityToCollisionConnections = annutils.matrix(nBumpers, nDistanceSensors)
-
-collisionToReverseConnections = annutils.sparselyConnected([0], [[7, 0]], gen = lambda:1.0)
+_collisionToReverseConnections = annutils.sparselyConnected([0], [[7, 0]], gen = lambda:1.0)
     
-collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), [[4, 5, 6, 7], [0, 1, 2, 3]], gen = lambda:1.0)
+_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), [[4, 5, 6, 7], [0, 1, 2, 3]], gen = lambda:1.0)
 
 # Connectivity Matrices
 # for each neuron of layer[j] the matrix holds the weights to each neuron of level[i = j - 1]
 # in the form of neuron[n] of layer[j] -> [ w[n][0], ..., w[n][m] ] of neuron[0...m] of layer[i]
 connectivities = {
-    1: proximityToCollisionConnections, # Collision <- Proximity ==> FULLY CONNECTED
-    2: collisionToReverseConnections,  # Reverse Command <- Collision, not fully connected 
-    3: collisionToMotorConnections # Motor Command <- Collision, not fully connected 
+    1: _proximityToCollisionConnections, # Collision <- Proximity ==> FULLY CONNECTED
+    2: _collisionToReverseConnections,  # Reverse Command <- Collision, not fully connected 
+    3: _collisionToMotorConnections # Motor Command <- Collision, not fully connected 
 }
 
 # layer -> output
@@ -40,8 +31,8 @@ connectivities = {
 outputs = {
     0: annutils.array(nDistanceSensors), # output: Proximity -> Collision
     1: annutils.array(nBumpers), # output: Collison -> Motor, Reverse
-    2: annutils.array(len(collisionToReverseConnections)), # output: Reverse -> ...
-    3: annutils.array(len(collisionToMotorConnections)) # output: Motor -> ...
+    2: annutils.array(len(_collisionToReverseConnections)), # output: Reverse -> ...
+    3: annutils.array(len(_collisionToMotorConnections)) # output: Motor -> ...
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

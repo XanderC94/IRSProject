@@ -13,6 +13,7 @@ class NetParameters:
         self.forget_rate = forget_rate
         self.motor_threshold = motor_threshold
         self.reverse_threshold = reverse_threshold
+
     def __str__(self):
         return (f" collision_treshold: {self.collision_treshold}, learning_rate: {self.learning_rate}, forget_rate: {self.forget_rate}, motor_threshold:  {self.motor_threshold}, reverse_threshold: {self.reverse_threshold}")
 
@@ -53,6 +54,7 @@ def loadTrainedModel(path: str) -> TrainedModel:
     loaded_json["parameters"]["forget_rate"],
     loaded_json["parameters"]["motor_threshold"],
     loaded_json["parameters"]["reverse_threshold"])
+    
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
     return TrainedModel(loaded_json["version_name"], loaded_parameters, connectivities)
 
