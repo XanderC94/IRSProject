@@ -24,11 +24,11 @@ class TrainedModel:
         return "Model version name: " + self.version_name + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
 
 
-def saveTrainedModel(model: TrainedModel, directoryPath: str) -> str:
-    model_name = directoryPath + model.version_name + ".json"
-    with open(model_name, 'w') as outfile:
+def saveTrainedModel(model: TrainedModel, path: str):
+   
+    with open(path, 'w') as outfile:
         json.dump(model.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
-    return model_name
+
 
 def recursiveExtractDictWithIntKey(json)-> dict:
     connectivities = {}
@@ -40,10 +40,13 @@ def recursiveExtractDictWithIntKey(json)-> dict:
     return connectivities
 
 
-def loadTrainedModel(model_file_name: str) -> TrainedModel:
-    loaded_json = None
-    with open(model_file_name, 'r') as json_data:
+def loadTrainedModel(path: str) -> TrainedModel:
+    
+    loaded_json = {}
+
+    with open(path, 'r') as json_data:
         loaded_json = json.load(json_data)
+
     loaded_parameters = NetParameters(loaded_json["parameters"]["collision_treshold"],
     loaded_json["parameters"]["learning_rate"],
     loaded_json["parameters"]["forget_rate"],

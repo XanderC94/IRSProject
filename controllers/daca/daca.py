@@ -34,18 +34,18 @@ if 'version' in opt:
 
 isTrainingModeActive = False
 trainTime = -1 # minutes, -1 -> Infinite
-modelDirectory = ""
+modelPath = ""
 
 if 'mode' in opt and opt['mode'] == 'train':
     isTrainingModeActive = True
     if 'time' in opt:
         trainTime = opt['time']
 
-if 'modelDirectory' in opt:
-    modelDirectory = opt['modelDirectory']
+if 'modelPath' in opt:
+    modelPath = opt['modelPath']
 
 if not isTrainingModeActive:
-    loadedModel = loadTrainedModel(modelDirectory)
+    loadedModel = loadTrainedModel(modelPath)
     nns.COLLISION_THRESHOLD = loadedModel.parameters.collision_treshold
     nns.LEARNING_RATE = loadedModel.parameters.learning_rate
     nns.FORGET_RATE = loadedModel.parameters.forget_rate
@@ -124,7 +124,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
 if isTrainingModeActive:
     parameters = NetParameters(nns.COLLISION_THRESHOLD, nns.LEARNING_RATE, nns.FORGET_RATE, nns.MOTOR_THRESHOLD, nns.REVERSE_THRESHOLD)
     model = TrainedModel(version_name, parameters, nns.connectivities)
-    saveTrainedModel(model, modelDirectory)
+    saveTrainedModel(model, modelPath)
 
 # Enter here exit cleanup code.
 motors['left'].device.setVelocity(0.0)

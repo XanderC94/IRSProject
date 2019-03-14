@@ -1,11 +1,11 @@
 {
     "version": 2,
-    "coll-ths": 0.5,
-    "motor-ths": 0.5,
-    "reverse-ths": 0.5,
-    "frate": 0.1,
-    "lrate": 0.1,
+    "collisionThreshold": 0.65,
+    "motorThreshold": 1,
+    "reverseThreshold": 2,
+    "learningRate": 0.05,
+    "forgetRate": 0.8,
     "time": 1,
-    "mode": "train",
-    "modelDirectory": "../../model/"
+    "mode": "test",
+    "modelPath": "../../model/dac_model_v2.json"
 }
