@@ -42,4 +42,5 @@ class ID:
     lights = ids(light_sensor_template, nLightSensors)
     leds = ids(led_template, nLEDs)
     motors = {'left':'left wheel motor', 'right':'right wheel motor'}
+    positions = {'left': 'left wheel sensor', 'right':'right wheel sensor'}
     bumpers = ids(bumper_template, nBumpers)

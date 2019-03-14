@@ -1,11 +1,19 @@
 import libs.annutils as ann
-from libs.netversions.version2.neuralnetstructure import outputs, LEARNING_RATE, FORGET_RATE
+from libs.netversions.version2.neuralnetstructure import outputs
 from libs.netversions.version2.neuralnetstructure import outputFunction
 from libs.netversions.version2.neuralnetstructure import activationFunction
 from libs.netversions.version2.neuralnetstructure import compositionFunction
 from libs.netversions.version2.neuralnetstructure import connectivities
+from libs.netversions.version2.neuralnetstructure import LEARNING_RATE, FORGET_RATE, COLLISION_THRESHOLD, MOTOR_THRESHOLD, REVERSE_THRESHOLD
 
 from libs.motorresponse import wheelVelocity
+
+def setNetworkParams(learningRate, forgetRate, collisionThreshold, motorThreshold, reverseThreshold):
+    LEARNING_RATE = learningRate
+    FORGET_RATE = forgetRate
+    COLLISION_THRESHOLD = collisionThreshold
+    MOTOR_THRESHOLD = motorThreshold
+    REVERSE_THRESHOLD = reverseThreshold
 
 def processProxymityLayer(distances):
     # DISTANCES_INPUT -> PROXIMITY  ---------------------------- LAYER 0
