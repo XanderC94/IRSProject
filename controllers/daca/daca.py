@@ -10,7 +10,7 @@ from libs.argutils import parseArgs
 from libs.sensor import sensorArray
 from libs.motorresponse import wheelVelocity
 import libs.motor as motor
-from libs.utils import loadTrainedModel, saveTrainedModel, TrainedModel, NetParameters
+from libs.utils import loadTrainedModel, saveTrainedModel, TrainedModel, NetParameters, SimulationLog, Position, LogEntry, saveSimulationLog
 
 print(os.getcwd())
 
@@ -35,11 +35,14 @@ if 'version' in opt:
 isTrainingModeActive = False
 trainTime = -1 # minutes, -1 -> Infinite
 modelDirectory = ""
-
-if 'mode' in opt and opt['mode'] == 'train':
-    isTrainingModeActive = True
-    if 'time' in opt:
-        trainTime = opt['time']
+executionMode=""
+if 'mode' in opt:
+    executionMode = opt['mode']
+    if opt['mode'] == 'train':
+        isTrainingModeActive = True
+        
+if 'time' in opt:
+    trainTime = opt['time']
 
 if 'modelDirectory' in opt:
     modelDirectory = opt['modelDirectory']
@@ -82,6 +85,8 @@ for k, m in motors.items():
 
 #-------------------------------------------------
 
+log = SimulationLog(f"{version_name}-{executionMode}") 
+
 n_touches = 0
 
 # Main loop:
@@ -91,6 +96,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
     distances = []
     bumps = []
+    touched = False
 
     for k, s in dss.items(): distances.append(s.device.getValue())
     for k, s in bumpers.items(): bumps.append(s.device.getValue())
@@ -98,6 +104,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     if 1 in bumps: 
         print("TOUCHING!")
         n_touches += 1
+        touched = True
 
     print(f"Distances:{distances}")
     
@@ -117,6 +124,10 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     print(f"N° of touches: {n_touches}")
     print()
 
+    coordinates = robot.getSelf().getField("translation").getSFVec3f()
+    robotPosition = Position(coordinates[0], coordinates[1], coordinates[2])
+    log.addLogEntry(LogEntry(nSteps, touched, robotPosition))
+
     nSteps += 1
 
     pass
@@ -125,6 +136,8 @@ if isTrainingModeActive:
     parameters = NetParameters(nns.COLLISION_THRESHOLD, nns.LEARNING_RATE, nns.FORGET_RATE, nns.MOTOR_THRESHOLD, nns.REVERSE_THRESHOLD)
     model = TrainedModel(version_name, parameters, nns.connectivities)
     saveTrainedModel(model, modelDirectory)
+
+saveSimulationLog(log, "")
 
 # Enter here exit cleanup code.
 motors['left'].device.setVelocity(0.0)

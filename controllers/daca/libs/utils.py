@@ -79,5 +79,5 @@ class SimulationLog:
 def saveSimulationLog(log:SimulationLog, directoryPath: str) -> str:
     file_name = f"{directoryPath}SimLog{log.model_name}-{datetime.datetime.now()}g.json"
     with open(file_name, 'w') as outfile:
-        json.dump(log.__dict__, outfile, default= lambda x: x.__dict__)
+        json.dump(log.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
     return file_name
