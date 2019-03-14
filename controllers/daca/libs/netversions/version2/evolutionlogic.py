@@ -1,47 +1,62 @@
-import libs.annutils as ann
-from libs.netversions.version2.neuralnetstructure import outputs
-from libs.netversions.version2.neuralnetstructure import outputFunction
-from libs.netversions.version2.neuralnetstructure import activationFunction
-from libs.netversions.version2.neuralnetstructure import compositionFunction
-from libs.netversions.version2.neuralnetstructure import connectivities
-from libs.netversions.version2.neuralnetstructure import LEARNING_RATE, FORGET_RATE, COLLISION_THRESHOLD, MOTOR_THRESHOLD, REVERSE_THRESHOLD
+import libs.annutils as annutils
+from libs.utils import NetParameters
+import libs.netversions.version2.neuralnetstructure as nns
 
 from libs.motorresponse import wheelVelocity
 
-def setNetworkParams(learningRate, forgetRate, collisionThreshold, motorThreshold, reverseThreshold):
-    LEARNING_RATE = learningRate
-    FORGET_RATE = forgetRate
-    COLLISION_THRESHOLD = collisionThreshold
-    MOTOR_THRESHOLD = motorThreshold
-    REVERSE_THRESHOLD = reverseThreshold
+def setNetworkParameters(params: dict or NetParameters):
+
+    if params is dict: 
+
+        if 'learningRate' in params:
+            nns.LEARNING_RATE = params['learningRate']
+        if 'forgetRate' in params:
+            nns.FORGET_RATE = params['forgetRate']
+        if 'collisionThreshold' in params:
+            nns.COLLISION_THRESHOLD = params['collisionThreshold']
+        if 'motorThreshold' in params:
+            nns.MOTOR_THRESHOLD = params['motorThreshold']
+        if 'reverseThreshold' in params:
+            nns.REVERSE_THRESHOLD = params['reverseThreshold']
+
+    elif params is NetParameters:
+
+        nns.LEARNING_RATE = params.learning_rate
+        nns.FORGET_RATE = params.forget_rate
+        nns.COLLISION_THRESHOLD = params.collision_threshold
+        nns.MOTOR_THRESHOLD = params.motor_threshold
+        nns.REVERSE_THRESHOLD = params.reverse_threshold
+
+def setNetworkConnectivities(conn:dict):
+    nns.connectivities = conn
 
 def processProxymityLayer(distances):
     # DISTANCES_INPUT -> PROXIMITY  ---------------------------- LAYER 0
 
     layer = 0 
 
-    hf = compositionFunction[layer]
-    g = activationFunction[layer]
-    f = outputFunction[layer]
+    hf = nns.compositionFunction[layer]
+    g = nns.activationFunction[layer]
+    f = nns.outputFunction[layer]
 
-    h_proximity = [ann.inputComposition(i = distances[n], o = [], w = [],h = hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
-    a_proximity = [ann.activationLevel(h_proximity[i], g) for i in range(0, len(h_proximity))] # activation level of each neuron in the Proximity Layer 0
-    outputs[layer] = [ann.neuronOutput(a_proximity[i], f) for i in range(0, len(a_proximity))] # output level of each neuron that will be passed to the next layer
+    h_proximity = [annutils.inputComposition(i = distances[n], o = [], w = [],h = hf) for n in range(0, len(distances))] # summed activations of each neuron in the Proximity Layer 0
+    a_proximity = [annutils.activationLevel(h_proximity[i], g) for i in range(0, len(h_proximity))] # activation level of each neuron in the Proximity Layer 0
+    nns.outputs[layer] = [annutils.neuronOutput(a_proximity[i], f) for i in range(0, len(a_proximity))] # output level of each neuron that will be passed to the next layer
     
 def processCollisionLayer(bumps):
     # COLLISIONS_INPUT, PROXIMITY -> COLLISION -------------------------- LAYER 1
 
     layer = 1 
     
-    w = connectivities[layer]
-    o = outputs[layer - 1] # Proximity Layer Output
-    hf = compositionFunction[layer]
-    g = activationFunction[layer]
-    f = outputFunction[layer]
+    w = nns.connectivities[layer]
+    o = nns.outputs[layer - 1] # Proximity Layer Output
+    hf = nns.compositionFunction[layer]
+    g = nns.activationFunction[layer]
+    f = nns.outputFunction[layer]
 
-    h_collision = [ann.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
-    a_collision = [ann.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
-    outputs[layer] = [ann.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
+    h_collision = [annutils.inputComposition(bumps[n], o, w[n], hf) for n in range(0, len(bumps))]
+    a_collision = [annutils.activationLevel(h_collision[i], g) for i in range(0, len(h_collision))]
+    nns.outputs[layer] = [annutils.neuronOutput(a_collision[i], f) for i in range(0, len(a_collision))]
 
     print(f"Proximity Layer Output {o}")
     print(f"Weights Proximity to Collision:")
@@ -54,18 +69,18 @@ def processReverseLayer():
     layer = 2 
 
     #w = connectivities[layer]
-    o = outputs[layer - 1] # Collision Layer Output
-    hf = compositionFunction[layer]
-    g = activationFunction[layer]
-    f = outputFunction[layer]
+    o = nns.outputs[layer - 1] # Collision Layer Output
+    hf = nns.compositionFunction[layer]
+    g = nns.activationFunction[layer]
+    f = nns.outputFunction[layer]
 
-    h_reverse = ann.sparseInputComposition([], o, connectivities[layer], hf)
+    h_reverse = annutils.sparseInputComposition([], o, nns.connectivities[layer], hf)
 
     print(f"reverse layer composed input: {h_reverse}")
 
-    a_reverse = [ann.activationLevel(h_reverse[i], g) for i in range(0,len(h_reverse))]
+    a_reverse = [annutils.activationLevel(h_reverse[i], g) for i in range(0,len(h_reverse))]
 
-    outputs[layer] = [ann.neuronOutput(a_reverse[i], f) for i in range(0, len(a_reverse))]
+    nns.outputs[layer] = [annutils.neuronOutput(a_reverse[i], f) for i in range(0, len(a_reverse))]
 
 def processMotorLayer():
    # COLLISION -> MOTORS -----------------------------  LAYER 3
@@ -73,20 +88,20 @@ def processMotorLayer():
     layer = 3
 
     #w = connectivities[layer]
-    o = outputs[layer - 2] # Collision Layer Output
-    r = outputs[layer - 1] # Reverse Layer Output
-    hf = compositionFunction[layer]
-    g = activationFunction[layer]
-    f = outputFunction[layer]
+    o = nns.outputs[layer - 2] # Collision Layer Output
+    r = nns.outputs[layer - 1] # Reverse Layer Output
+    hf = nns.compositionFunction[layer]
+    g = nns.activationFunction[layer]
+    f = nns.outputFunction[layer]
 
     #Version 2 => 2 motor neuron
-    h_motor = ann.sparseInputComposition([], o, connectivities[layer], hf)
+    h_motor = annutils.sparseInputComposition([], o, nns.connectivities[layer], hf)
 
     print(f"motor layer composed input: {h_motor}")
 
-    a_motor = [ann.activationLevel(h_motor[i], g) for i in range(0,len(h_motor))]
+    a_motor = [annutils.activationLevel(h_motor[i], g) for i in range(0,len(h_motor))]
 
-    outputs[layer] = [ann.neuronOutput(a_motor[i], f) for i in range(0,len(a_motor))]
+    nns.outputs[layer] = [annutils.neuronOutput(a_motor[i], f) for i in range(0,len(a_motor))]
 
 def processAnnState(distances:list, bumps:list): 
     # ~~~~~~~~~~~~~~~~~ PROCESS ANN STATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
@@ -99,13 +114,13 @@ def processAnnState(distances:list, bumps:list):
 def updateWeights():
     # Now apply what It has learned
     # Weights Updates
-    updatedWeights = ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)
-    connectivities.update({1: updatedWeights})
+    updatedWeights = annutils.updateConnectivities(nns.connectivities[1], nns.outputs[1], nns.outputs[0], nns.LEARNING_RATE, nns.FORGET_RATE)
+    nns.connectivities.update({1: updatedWeights})
     
 def calculateMotorSpeed():
-    print(f"Collision Layer output {outputs[1]}")
-    reverseLayerOutput = outputs[2]
-    motorLayerOutputs = outputs[3]
+    print(f"Collision Layer output {nns.outputs[1]}")
+    reverseLayerOutput = nns.outputs[2]
+    motorLayerOutputs = nns.outputs[3]
     print(f"Command Layer [Reverse] output {reverseLayerOutput}")
     print(f"Command Layer [Motor] output {motorLayerOutputs}")
 
