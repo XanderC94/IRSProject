@@ -56,9 +56,10 @@ def loadTrainedModel(model_file_name: str) -> TrainedModel:
 
 
 class Position:
-    def __init__(self, X, Y):
+    def __init__(self, X, Y, Z):
         self.X = X
         self.Y = Y
+        self.Z = Z
 
 class LogEntry:
     def __init__(self, step_number: int, touched: bool, position: Position):
