@@ -71,7 +71,7 @@ class SimulationLog:
         self.model_name=model_name;
         self.log = log
 
-    def addLogEntry(entry: LogEntry):
+    def addLogEntry(self, entry: LogEntry):
         self.log.append(entry)
 
 
