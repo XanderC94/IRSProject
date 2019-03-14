@@ -106,8 +106,8 @@ while robot.step(timestep) != -1:
     pass
 
 if isTrainingModeActive:
-    parameters = NetParameters(COLLISION_THRESHOLD, LEARNING_RATE, FORGET_RATE, MOTOR_THRESHOLD, REVERSE_THRESHOLD)
-    model = TrainedModel(version_name, parameters, connectivities)
+    parameters = NetParameters(ann.COLLISION_THRESHOLD, ann.LEARNING_RATE, ann.FORGET_RATE, ann.MOTOR_THRESHOLD, ann.REVERSE_THRESHOLD)
+    model = TrainedModel(version_name, parameters, ann.connectivities)
     saveTrainedModel(model, modelDirectory)
 
 # Enter here exit cleanup code.
