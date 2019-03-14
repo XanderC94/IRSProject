@@ -27,10 +27,8 @@ class TrainedModel:
 def saveTrainedModel(model: TrainedModel, directoryPath: str) -> str:
     model_name = directoryPath + model.version_name + ".json"
     with open(model_name, 'w') as outfile:
-        json.dump(model.__dict__, outfile, default= lambda x: x.__dict__)
+        json.dump(model.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
     return model_name
-
-
 
 def recursiveExtractDictWithIntKey(json)-> dict:
     connectivities = {}
