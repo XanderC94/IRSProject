@@ -1,30 +1,26 @@
 from enum import Enum
+import json
 
 def parseArgs(argv):
-    opt = {}
+    args = {}
     for arg in argv:
         if (arg.startswith("--")): 
             v = arg.split("=")
             key = v[0].replace("--", "")
-            value = convertValue(v[1])
-            opt.update({key:value})
+            value = v[1]
+            args.update({key:value})
+
+    opt = {}
+
+    if 'args' in args:
+        with open(args['args'], "r") as config:
+            opt = json.load(config)
+
     return opt
-
-def convertValue(value):
-
-    if value.lower == 'true' or value.lower == 'false':
-        return bool(value)
-    else:
-        try:
-            return int(value)    
-        except ValueError:
-            try:
-                return float(value)    
-            except ValueError:
-                return value
             
 class Options(Enum):
     MODE = 'mode'
     TIME = 'time'
     VERSION = 'version'
-    MODEL_DIR = 'modelDirectory'
+    MODEL_DIR = 'modelPath'
+    LOG_DIR = 'simulatioLogPath'

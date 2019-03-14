@@ -12,7 +12,7 @@ PROTO E-puck [
   field SFRotation rotation            0 1 0 0                                                                                                             # Is `Transform.rotation`.
   field SFString   name                "ePuck2"                                                                                                            # Is `Solid.name`.
   field SFString   controller          "phototaxis"                                                                                                        # Is `Robot.controller`.
-  field SFString   controllerArgs      "--version=2 --coll-ths=0.5 --frate=0.1 --lrate=0.1 --time=120 --mode=train  --modelDirectory=\"./trainedModel/\" "  # Is `Robot.controllerArgs`.
+  field SFString   controllerArgs      "--args=../../model/controllerArgs.json"                                                                        # Is `Robot.controllerArgs`.
   field SFString   customData          ""                                                                                                                  # Is `Robot.customData`.
   field SFBool     supervisor          TRUE                                                                                                                # Is `Robot.supervisor`.
   field SFBool     synchronization     TRUE                                                                                                                # Is `Robot.synchronization`.

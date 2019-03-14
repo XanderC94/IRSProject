@@ -1,0 +1,12 @@
+{
+    "version": 2,
+    "collisionThreshold": 0.65,
+    "motorThreshold": 1,
+    "reverseThreshold": 2,
+    "learningRate": 0.05,
+    "forgetRate": 0.8,
+    "time": 1,
+    "mode": "train",
+    "modelPath": "../../model/dac_model_v2.json",
+    "simulatioLogPath": "../../model/simulation-logs/"
+}

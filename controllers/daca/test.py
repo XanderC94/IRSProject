@@ -56,8 +56,8 @@ class TestStringMethods(unittest.TestCase):
 
         test_model = TrainedModel("TestExample", parameters, connectivities)
         print(f"TEST MODEL: {str(test_model)}")
-        model_name = saveTrainedModel(test_model, "")
-        loaded_model = loadTrainedModel(model_name)
+        model_name = saveTrainedModel(test_model, f"{test_model.version_name}.json")
+        loaded_model = loadTrainedModel(f"{test_model.version_name}.json")
         print(f"LOADED MODEL: {str(loaded_model)}")        
         self.assertEqual(str(loaded_model), str(test_model))
 
