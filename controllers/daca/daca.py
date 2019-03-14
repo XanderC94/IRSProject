@@ -28,9 +28,9 @@ if 'version' in opt
         import libs.netversions.version2.evolutionlogic as ann
     version_name = "Version"opt['version']
 
-isTrainModeActive = False
+isTrainingModeActive = False
 if 'mode' in opt and opt['mode'] == 'train':
-    isTrainModeActive = True
+    isTrainingModeActive = True
 
 modelDirectory = ""
 if 'modelDirectory' in opt:
@@ -58,14 +58,14 @@ for k, m in motors.items():
     m.device.setPosition(float('+inf'))
     m.device.setVelocity(0.0)
 
-if !isTrainModeActive:
+if !isTrainingModeActive:
     loadedModel = loadTrainedModel(modelPath)
-    COLLISION_THRESHOLD = loadedModel.parameters.collision_treshold
-    LEARNING_RATE = loadedModel.parameters.learning_rate
-    FORGET_RATE = loadedModel.parameters.forget_rate
-    MOTOR_THRESHOLD = loadedModel.parameters.motor_threshold
-    REVERSE_THRESHOLD = loadedModel.parameters.reverse_threshold
-    connectivities = loadedModel.connectivities
+    ann.COLLISION_THRESHOLD = loadedModel.parameters.collision_treshold
+    ann.LEARNING_RATE = loadedModel.parameters.learning_rate
+    ann.FORGET_RATE = loadedModel.parameters.forget_rate
+    ann.MOTOR_THRESHOLD = loadedModel.parameters.motor_threshold
+    ann.REVERSE_THRESHOLD = loadedModel.parameters.reverse_threshold
+    ann.connectivities = loadedModel.connectivities
 #-------------------------------------------------
 
 n_touches = 0
@@ -95,16 +95,17 @@ while robot.step(timestep) != -1:
     motors['left'].device.setVelocity(lv)
     motors['right'].device.setVelocity(rv)
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ann.updateWeights()
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if isTrainingModeActive:
+        #~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ann.updateWeights()
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print(f"N° of touches: {n_touches}")
     print()
 
     pass
 
-if isTrainModeActive:
+if isTrainingModeActive:
     parameters = NetParameters(COLLISION_THRESHOLD, LEARNING_RATE, FORGET_RATE, MOTOR_THRESHOLD, REVERSE_THRESHOLD)
     model = TrainedModel(version_name, parameters, connectivities)
     saveTrainedModel(model, modelDirectory)
