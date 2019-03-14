@@ -59,8 +59,13 @@ for k, m in motors.items():
     m.device.setVelocity(0.0)
 
 if !isTrainModeActive:
-    loadTrainedModel(modelPath)
-
+    loadedModel = loadTrainedModel(modelPath)
+    COLLISION_THRESHOLD = loadedModel.parameters.collision_treshold
+    LEARNING_RATE = loadedModel.parameters.learning_rate
+    FORGET_RATE = loadedModel.parameters.forget_rate
+    MOTOR_THRESHOLD = loadedModel.parameters.motor_threshold
+    REVERSE_THRESHOLD = loadedModel.parameters.reverse_threshold
+    connectivities = loadedModel.connectivities
 #-------------------------------------------------
 
 # Main loop:

@@ -53,4 +53,4 @@ def loadTrainedModel(model_file_name: str) -> TrainedModel:
     loaded_json["parameters"]["reverse_threshold"])
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
     return TrainedModel(loaded_json["version_name"], loaded_parameters, connectivities)
-    
+      
