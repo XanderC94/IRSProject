@@ -21,11 +21,15 @@ print(opt)
 version_name = ""
 
 if 'version' in opt:
-
+    
     if opt['version'] == 3:
         print("Using ANN v3")
         import libs.netversions.version3.neuralnetstructure as nns
         import libs.netversions.version3.evolutionlogic as ann
+    elif opt['version'] == 4:
+        print("Using ANN v3")
+        import libs.netversions.version4.neuralnetstructure as nns
+        import libs.netversions.version4.evolutionlogic as ann
     else:
         print("Using ANN v2")
         import libs.netversions.version2.neuralnetstructure as nns
@@ -68,7 +72,6 @@ elif 'parameters' in opt:
 # Setup ------------------------------------
 
 log = utils.SimulationLog(f"{version_name}-{executionMode}")
-logger = utils.DACLogger(f"{version_name}-{executionMode}")
 
 # create the Robot instance.
 # robot = Robot()
@@ -116,10 +119,10 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     hasTouched = (1 in bumps)
     
     if hasTouched: 
-        logger.debug("TOUCHING!")
+        print("TOUCHING!")
         nTouches += 1
 
-    logger.debug(f"Distances:{distances}")
+    print(f"Distances:{distances}")
 
     # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -127,7 +130,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
 
     # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
     lv, rv = ann.calculateMotorSpeed()
-    logger.debug(f"Speed:{lv}, {rv}")
+    print(f"Speed:{lv}, {rv}")
     motors['left'].device.setVelocity(lv)
     motors['right'].device.setVelocity(rv)
 
@@ -138,8 +141,8 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    logger.debug(f"N° of touches: {nTouches}")
-    logger.debug('########################################')
+    print(f"N° of touches: {nTouches}")
+    print()
 
     coordinates = robot.getSelf().getField("translation").getSFVec3f()
     robotPosition = utils.Position.fromTuple(coordinates)
