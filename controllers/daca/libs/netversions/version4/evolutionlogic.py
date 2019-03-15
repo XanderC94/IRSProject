@@ -134,11 +134,15 @@ def processMotorLayer():
         list(nns.outputs[layer].keys()),
         annutils.layerOutput(a_motor, f)
     )
+    
     logger.info(f"Motor Layer Composed Input: {h_motor}")
     logger.info(f"Motor Layer Output: {nns.outputs[layer]}")
 
 def processAnnState(distances:list, bumps:list): 
-    # ~~~~~~~~~~~~~~~~~ PROCESS ANN STATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+    # ~~~~~~~~~~~~~~~~~ PROCESS ANN STATE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    logger.info(f"Distances:{distances}")
+    logger.info(f"Bumps:{bumps}")
+
     processProximityLayer(distances)
     processCollisionLayer(bumps)
     processReverseLayer()

@@ -69,8 +69,6 @@ def loadTrainedModel(path: str) -> TrainedModel:
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
     return TrainedModel(loaded_json["version_name"], loaded_parameters, connectivities)
 
-
-
 class Position:
 
     def __init__(self, X:float, Y:float, Z:float):
@@ -90,32 +88,6 @@ class LogEntry:
         self.touched = touched
         self.position = position
         self.nTouches = nTouches
-
-
-class DACLogger:
-
-    def __init__(self, name : str, path: str = ""):
-
-        self.logger = logging.getLogger(name)
-
-        formatter = logging.Formatter('%(message)s')
-
-        if len(path) > 0:
-            fh = logging.FileHandler(path)
-            fh.setLevel(logging.INFO)
-            fh.setFormatter(formatter)
-            self.logger.addHandler(fh)
-    
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
-
-    def debug(self, message: str):
-        self.logger.debug(message)
-
-    def info(self, message: str):
-        self.logger.info(message)
 
 class SimulationLog:
     
