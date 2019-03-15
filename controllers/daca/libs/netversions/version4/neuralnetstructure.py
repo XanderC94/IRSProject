@@ -12,14 +12,19 @@ REVERSE_THRESHOLD = 2
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
 
-active_ps = [0, 1, 2, 3, 4, 5, 6, 7]
-active_ts = [0, 1, 2, 3, 4, 5, 6, 7]
+active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+# active_ps = [0, 1, 2, 5, 6, 7] # v4
+# active_ts = [0, 1, 2, 5, 6, 7] # v4
+
+motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
+# motor_config = [[5, 6, 7], [0, 1, 2]] # v4
 
 _proximityToCollisionConnections = annutils.fullyConnected(active_ts, active_ps)
 
 _collisionToReverseConnections = annutils.sparselyConnected([0], [[0, 7]], gen = lambda:1.0)
     
-_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), [[4, 5, 6, 7], [0, 1, 2, 3]], gen = lambda:1.0)
+_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), motor_config, gen = lambda:1.0)
 
 # Connectivity Matrices
 # for each neuron of layer[j] the matrix holds the weights to each neuron of level[i = j - 1]

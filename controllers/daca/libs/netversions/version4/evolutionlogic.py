@@ -68,7 +68,7 @@ def processProximityLayer(distances: list):
 def processCollisionLayer(bumps : list):
     # COLLISIONS_INPUT, PROXIMITY -> COLLISION -------------------------- LAYER 1
     
-    i = [bumps[i] for i in nns.active_ts]
+    i = {i:bumps[i] for i in nns.active_ts}
 
     layer = 1 
 

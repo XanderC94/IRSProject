@@ -51,9 +51,8 @@ def sparseInputComposition(nIn: float or int, outputs: list or dict, connectivit
 
     return inputComposition(nIn, nOuts, weights, hf)
 
-def sparseLayerInputComposition(inputs:list, outputs: list or dict, layerConnectivities: dict, hf: lambda i, o, w: float) -> list:
+def sparseLayerInputComposition(inputs:list or dict, outputs: list or dict, layerConnectivities: dict, hf: lambda i, o, w: float) -> list:
     h = []
-        
     for currNeuron, connToNeuron in layerConnectivities.items():
         nIn = inputs[currNeuron] if len(inputs) > 0 else 0.0
 
