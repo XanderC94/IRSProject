@@ -155,6 +155,7 @@ if isTrainingModeActive:
     model = utils.TrainedModel(version_name, parameters, nns.connectivities)
     utils.saveTrainedModel(model, modelPath)
 
+log.setReferenceModel(model)
 log.saveTo(simulatioLogPath)
 
 # Enter here exit cleanup code.
