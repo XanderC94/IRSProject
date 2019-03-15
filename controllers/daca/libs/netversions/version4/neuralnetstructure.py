@@ -9,13 +9,17 @@ COLLISION_THRESHOLD = 0.65
 MOTOR_THRESHOLD = 1
 REVERSE_THRESHOLD = 2
 
-#~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
+# Rear bumpers and distance sensors are disconnected
 
-_proximityToCollisionConnections = annutils.matrix(nBumpers, nDistanceSensors)
+active_ps = [0, 1, 2, 3, 4, 5, 6, 7]
+active_ts = [0, 1, 2, 3, 4, 5, 6, 7]
 
-_collisionToReverseConnections = annutils.sparselyConnected([0], [[7, 0]], gen = lambda:1.0)
+_proximityToCollisionConnections = annutils.fullyConnected(active_ts, active_ps)
+
+_collisionToReverseConnections = annutils.sparselyConnected([0], [[0, 7]], gen = lambda:1.0)
     
-_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), [[5, 6, 7], [0, 1, 2]], gen = lambda:1.0)
+_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), [[4, 5, 6, 7], [0, 1, 2, 3]], gen = lambda:1.0)
 
 # Connectivity Matrices
 # for each neuron of layer[j] the matrix holds the weights to each neuron of level[i = j - 1]
@@ -29,10 +33,16 @@ connectivities = {
 # layer -> output
 # results of f(activation[i]) where f is the output function
 outputs = {
-    0: annutils.array(nDistanceSensors), # output: Proximity -> Collision
-    1: annutils.array(nBumpers), # output: Collison -> Motor, Reverse
-    2: annutils.array(len(_collisionToReverseConnections)), # output: Reverse -> ...
-    3: annutils.array(len(_collisionToMotorConnections)) # output: Motor -> ...
+    0: annutils.sparseArray(active_ps, [0.0 for _ in active_ps]), # output: Proximity -> Collision
+    1: annutils.sparseArray(active_ts, [0.0 for _ in active_ts]), # output: Collison -> Motor, Reverse
+    2: annutils.sparseArray(
+        list(connectivities[2].keys()), 
+        [0.0 for _ in connectivities[2].keys()]
+    ), # output: Reverse -> ...
+    3: annutils.sparseArray(
+        list(connectivities[3].keys()), 
+        [0.0 for _ in connectivities[3].keys()]
+    ) # output: Motor -> ...
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

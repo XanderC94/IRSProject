@@ -30,7 +30,7 @@ def fullyConnected(currLayer, prevLayer, gen: lambda: float = lambda:0.0) -> dic
 
     return w
 
-def neuralConnection(nId, prevLayer, gen: lambda: float = lambda:0.0):
+def neuralConnection(nId, prevLayer:list, gen: lambda: float = lambda:0.0):
 
     row = {}
 
@@ -39,21 +39,32 @@ def neuralConnection(nId, prevLayer, gen: lambda: float = lambda:0.0):
 
     return pair(nId, row)
 
-def sparseInputComposition(inputs:list, outputs: list, layerConnectivities: dict, hf: lambda i, o, w: float) -> list:
-    h = []
-    for _, connToNeuron in layerConnectivities.items():
-        nOuts = []
-        nIns = []
-        weights = []
-
-        for prevNeuron, weight in connToNeuron.items():
-            if len(outputs) > prevNeuron: nOuts.append(outputs[prevNeuron])
-            if len(inputs) > prevNeuron: nIns.append(inputs[prevNeuron])
+def sparseInputComposition(nIn: float or int, outputs: list or dict, connectivities: dict, hf: lambda i, o, w: float) -> list:
+    nOuts = []
+    weights = []
+    
+    for prevNeuron, weight in connectivities.items():
+        
+        if len(outputs) > prevNeuron or prevNeuron in outputs: 
+            nOuts.append(outputs[prevNeuron])
             weights.append(weight)
 
-        h.append((inputComposition(nIns, nOuts, weights, hf)))
+    return inputComposition(nIn, nOuts, weights, hf)
+
+def sparseLayerInputComposition(inputs:list, outputs: list or dict, layerConnectivities: dict, hf: lambda i, o, w: float) -> list:
+    h = []
+        
+    for currNeuron, connToNeuron in layerConnectivities.items():
+        nIn = inputs[currNeuron] if len(inputs) > 0 else 0.0
+
+        h.append(sparseInputComposition(nIn, outputs, connToNeuron, hf))
 
     return h
+
+def sparseArray(keys:list, values:list) -> dict:
+    return {
+        keys[i]:values[i] for i in range(0, len(values))
+    }
 
 def matrix(rn : int, cn : int, gen: lambda: float = lambda: 0.0) -> list:
     return [array(cn, gen) for i in range(0, rn)]
@@ -69,7 +80,7 @@ def weightedSum(w : list, o : list) -> float:
 def mean(v : list) -> float:
     return sum(v)/len(v)
 
-def inputComposition(i, o, w, h: lambda i, o, w: float) -> float:
+def inputComposition(i: float, o: list, w: list, h: lambda i, o, w: float) -> float:
     return h(i, o, w)
 
 def activationLevel(hi : float, g : lambda h: float) -> float:
@@ -77,6 +88,37 @@ def activationLevel(hi : float, g : lambda h: float) -> float:
 
 def neuronOutput(ai : float, f = lambda a: a) -> float:
     return f(ai)
+
+def layerInputComposition(i: list, o:list, w: list or dict, h: lambda i, o, w: float) -> list:
+    return [inputComposition(i = i[n], o = o, w = w, h = h) for n in range(0, len(i))]
+
+def layerActivationLevel(h:list, g : lambda h: float) -> list:
+    return [activationLevel(h[i], g) for i in range(0, len(h))]
+
+def layerOutput(a:list, f = lambda a: a):
+    return [neuronOutput(a[i], f) for i in range(0, len(a))]
+
+def updateSparseConnectivities(w : dict, currLayerOutput : list or dict, prevLayerOutput: list or dict, learnRate : float, forgetRate : float) -> dict:
+    
+    # mean output level of the current layer
+    meanCurrOutput = mean(
+        currLayerOutput if isinstance(currLayerOutput, list) else list(currLayerOutput.values())
+    )
+
+    # m = len(currLayerOutput)
+    n = len(prevLayerOutput)
+
+    weights = {}
+    for i, oi in currLayerOutput.items():
+        conn = {}
+        for j, oj in prevLayerOutput.items():
+            
+            delta = (learnRate * oi * oj - forgetRate * meanCurrOutput * w[i][j]) / n
+            conn.update({j:w[i][j] + delta})
+
+        weights.update({i:conn})
+
+    return weights
 
 def updateConnectivities(w : list, currLayerOutput : list, prevLayerOutput: list, learnRate : float, forgetRate : float) -> list:
     

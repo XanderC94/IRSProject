@@ -11,7 +11,10 @@ REVERSE_THRESHOLD = 2
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
 
-_proximityToCollisionConnections = annutils.matrix(nBumpers, nDistanceSensors)
+active_ps = [0, 1, 2, 3, 4, 5, 6, 7]
+active_ts = [0, 1, 2, 3, 4, 5, 6, 7]
+
+_proximityToCollisionConnections = annutils.matrix(len(active_ps), len(active_ts))
 
 _collisionToReverseConnections = annutils.sparselyConnected([0], [[7, 0]], gen = lambda:1.0)
     
@@ -43,7 +46,10 @@ outputs = {
 #       '-> activationFunction[layer]  
 #           '->  outputFunction[layer] as o
 
-# sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 
+# sensorInput as sIn, 
+# previousLayerOutput as plOut, 
+# weights[[layer - 1] -> [layer]] as w 
+# -> compositionFunction[layer] as h 
 compositionFunction = {
     0: lambda sIn, plOut, w: sIn,
     1: lambda sIn, plOut, w: sIn + annutils.weightedSum(w, plOut),
