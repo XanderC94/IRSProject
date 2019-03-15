@@ -34,7 +34,6 @@ if 'version' in opt:
     version_name = f"Version{opt['version']}"
 
 isTrainingModeActive = False
-trainTime = -1 # minutes, -1 -> Infinite
 
 executionMode=""
 if 'mode' in opt:
@@ -42,8 +41,9 @@ if 'mode' in opt:
     if opt['mode'] == 'train':
         isTrainingModeActive = True
         
-    if 'time' in opt:
-        trainTime = opt['time']
+runtime = -1 # minutes, -1 -> Infinite
+if 'time' in opt:
+    runtime = opt['time']
 
 modelPath = ""
 if 'modelPath' in opt:
@@ -79,9 +79,9 @@ robot = Supervisor()
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())
 nSteps = 0
-maxSteps = int((trainTime * 60 * 1000) / timeStep)
+maxSteps = int((runtime * 60 * 1000) / timeStep)
 
-print(f"TIME:{trainTime}min | STEP-TIME:{timeStep}ms => MAX-STEPS: {maxSteps}")
+print(f"TIME:{runtime} min | STEP-TIME:{timeStep} ms => MAX-STEPS: {maxSteps}")
 
 # You should insert a getDevice-like function in order to get the
 # instance of a device of the robot.
@@ -139,7 +139,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     logger.debug(f"N° of touches: {nTouches}")
-    logger.debug('\n')
+    logger.debug('########################################')
 
     coordinates = robot.getSelf().getField("translation").getSFVec3f()
     robotPosition = utils.Position.fromTuple(coordinates)
