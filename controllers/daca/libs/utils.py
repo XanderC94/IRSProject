@@ -15,7 +15,7 @@ class NetParameters:
         self.reverse_threshold = reverse_threshold
 
     def __str__(self):
-        return (f" collision_treshold: {self.collision_threshold}, learning_rate: {self.learning_rate}, forget_rate: {self.forget_rate}, motor_threshold:  {self.motor_threshold}, reverse_threshold: {self.reverse_threshold}")
+        return (f" collision_threshold: {self.collision_threshold}, learning_rate: {self.learning_rate}, forget_rate: {self.forget_rate}, motor_threshold:  {self.motor_threshold}, reverse_threshold: {self.reverse_threshold}")
 
     @staticmethod
     def fromDict(params: dict):
@@ -60,7 +60,7 @@ def loadTrainedModel(path: str) -> TrainedModel:
     with open(path, 'r') as json_data:
         loaded_json = json.load(json_data)
 
-    loaded_parameters = NetParameters(loaded_json["parameters"]["collision_treshold"],
+    loaded_parameters = NetParameters(loaded_json["parameters"]["collision_threshold"],
     loaded_json["parameters"]["learning_rate"],
     loaded_json["parameters"]["forget_rate"],
     loaded_json["parameters"]["motor_threshold"],
