@@ -6,7 +6,7 @@ from libs.motorresponse import wheelVelocity
 
 def setNetworkParameters(params: dict or NetParameters):
 
-    if params is dict: 
+    if isinstance(params, dict): 
 
         if 'learningRate' in params:
             nns.LEARNING_RATE = params['learningRate']
@@ -19,13 +19,22 @@ def setNetworkParameters(params: dict or NetParameters):
         if 'reverseThreshold' in params:
             nns.REVERSE_THRESHOLD = params['reverseThreshold']
 
-    elif params is NetParameters:
+    elif isinstance(params, NetParameters):
 
         nns.LEARNING_RATE = params.learning_rate
         nns.FORGET_RATE = params.forget_rate
         nns.COLLISION_THRESHOLD = params.collision_threshold
         nns.MOTOR_THRESHOLD = params.motor_threshold
         nns.REVERSE_THRESHOLD = params.reverse_threshold
+
+def getNetworkParams() -> dict:
+    return {
+        'learningRate':nns.LEARNING_RATE,
+        'forgetRate':nns.FORGET_RATE,
+        'collisionThreshold':nns.COLLISION_THRESHOLD,
+        'motorThreshold':nns.MOTOR_THRESHOLD,
+        'reverseThreshold':nns.REVERSE_THRESHOLD
+    }
 
 def setNetworkConnectivities(conn:dict):
     nns.connectivities = conn

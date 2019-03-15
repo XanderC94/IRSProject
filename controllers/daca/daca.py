@@ -5,28 +5,29 @@
 from controller import *
 import sys, os
 
+print(os.getcwd())
+
 from libs.epuck import ID
 from libs.argutils import parseArgs
 from libs.sensor import sensorArray
 from libs.motorresponse import wheelVelocity
 import libs.motor as motor
-from libs.utils import loadTrainedModel, saveTrainedModel, TrainedModel, NetParameters, SimulationLog, Position, LogEntry, saveSimulationLog
-
-print(os.getcwd())
+import libs.utils as utils
 
 opt = parseArgs(sys.argv)
 
 print(opt)
+
 version_name = ""
 
 if 'version' in opt:
 
     if opt['version'] == 3:
+        print("Using ANN v3")
         import libs.netversions.version3.neuralnetstructure as nns
-        print("using ann v3")
         import libs.netversions.version3.evolutionlogic as ann
     else:
-        print("using ann v2")
+        print("Using ANN v2")
         import libs.netversions.version2.neuralnetstructure as nns
         import libs.netversions.version2.evolutionlogic as ann
 
@@ -53,19 +54,27 @@ if 'simulatioLogPath' in opt:
     simulatioLogPath = opt['simulatioLogPath']
 
 if not isTrainingModeActive:
-    loadedModel = loadTrainedModel(modelPath)
-
+    print('Mode: Test')
+    loadedModel = utils.loadTrainedModel(modelPath)
+    print(loadedModel.parameters)
     ann.setNetworkParameters(loadedModel.parameters)
-
     ann.setNetworkConnectivities(loadedModel.connectivities)
+
 elif 'parameters' in opt:
+    print('Mode: Train')
+    print('params:', opt['parameters'])
     ann.setNetworkParameters(opt['parameters'])
 
 # Setup ------------------------------------
 
+log = utils.SimulationLog(f"{version_name}-{executionMode}")
+logger = utils.DACLogger(f"{version_name}-{executionMode}")
+
 # create the Robot instance.
 # robot = Robot()
-robot = Supervisor()
+# Supervisor extends Robot but has access to all the world info. 
+# Useful for automating the simulation.
+robot = Supervisor() 
 
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())
@@ -90,59 +99,63 @@ for k, m in motors.items():
 
 #-------------------------------------------------
 
-log = SimulationLog(f"{version_name}-{executionMode}") 
-
-n_touches = 0
+nTouches = 0
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while robot.step(timeStep) != -1 and nSteps != maxSteps:
     
     # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
+
     distances = []
     bumps = []
-    touched = False
 
     for k, s in dss.items(): distances.append(s.device.getValue())
     for k, s in bumpers.items(): bumps.append(s.device.getValue())
     
-    if 1 in bumps: 
-        print("TOUCHING!")
-        n_touches += 1
-        touched = True
+    hasTouched = (1 in bumps)
+    
+    if hasTouched: 
+        logger.debug("TOUCHING!")
+        nTouches += 1
 
-    print(f"Distances:{distances}")
+    logger.debug(f"Distances:{distances}")
+
+    # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
     
     ann.processAnnState(distances, bumps)
 
     # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
     lv, rv = ann.calculateMotorSpeed()
-    print(f"Speed:{lv}, {rv}")
+    logger.debug(f"Speed:{lv}, {rv}")
     motors['left'].device.setVelocity(lv)
     motors['right'].device.setVelocity(rv)
 
-    if isTrainingModeActive:
-        #~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ann.updateWeights()
-        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    print(f"N° of touches: {n_touches}")
-    print()
+    if isTrainingModeActive:
+        ann.updateWeights()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    logger.debug(f"N° of touches: {nTouches}")
+    logger.debug('\n')
 
     coordinates = robot.getSelf().getField("translation").getSFVec3f()
-    robotPosition = Position(coordinates[0], coordinates[1], coordinates[2])
-    log.addLogEntry(LogEntry(nSteps, touched, robotPosition))
+    robotPosition = utils.Position.fromTuple(coordinates)
+
+    log.addLogEntry(utils.LogEntry(nSteps, hasTouched, robotPosition, nTouches))
 
     nSteps += 1
 
     pass
 
 if isTrainingModeActive:
-    parameters = NetParameters(nns.COLLISION_THRESHOLD, nns.LEARNING_RATE, nns.FORGET_RATE, nns.MOTOR_THRESHOLD, nns.REVERSE_THRESHOLD)
-    model = TrainedModel(version_name, parameters, nns.connectivities)
-    saveTrainedModel(model, modelPath)
+    parameters = utils.NetParameters.fromDict(ann.getNetworkParams())
+    model = utils.TrainedModel(version_name, parameters, nns.connectivities)
+    utils.saveTrainedModel(model, modelPath)
 
-saveSimulationLog(log, simulatioLogPath)
+log.saveTo(simulatioLogPath)
 
 # Enter here exit cleanup code.
 motors['left'].device.setVelocity(0.0)
