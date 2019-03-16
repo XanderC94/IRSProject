@@ -12,13 +12,13 @@ REVERSE_THRESHOLD = 2
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
 
-active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
-active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
-# active_ps = [0, 1, 2, 5, 6, 7] # v4
-# active_ts = [0, 1, 2, 5, 6, 7] # v4
+# active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+# active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+active_ps = [0, 1, 2, 5, 6, 7] # v4
+active_ts = [0, 1, 2, 5, 6, 7] # v4
 
-motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
-# motor_config = [[5, 6, 7], [0, 1, 2]] # v4
+# motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
+motor_config = [[5, 6, 7], [0, 1, 2]] # v4
 
 _proximityToCollisionConnections = annutils.fullyConnected(active_ts, active_ps)
 

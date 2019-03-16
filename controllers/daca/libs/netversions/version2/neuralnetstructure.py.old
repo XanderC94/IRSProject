@@ -1,10 +1,7 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
-import sys
-from libs.argutils import parseArgs
-# Learning Parameters #########################
 
-opt = parseArgs(sys.argv)
+# Learning Parameters #########################
 
 LEARNING_RATE = 0.05
 FORGET_RATE = 0.8
@@ -12,40 +9,16 @@ COLLISION_THRESHOLD = 0.65
 MOTOR_THRESHOLD = 1
 REVERSE_THRESHOLD = 2
 
-if 'parameters' in opt:
-    if 'learningRate' in opt:
-        LEARNING_RATE = opt['learningRate']
-    if 'forgetRate' in opt:
-        FORGET_RATE = opt['forgetRate']
-    if 'collisionThreshold' in opt:
-        COLLISION_THRESHOLD = opt['collisionThreshold']
-    if 'motorThreshold' in opt:
-        MOTOR_THRESHOLD = opt['motorThreshold']
-    if 'reverseThreshold' in opt:
-        REVERSE_THRESHOLD = opt['reverseThreshold']
+#~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 2  ~~~~~~~~~~~~~~~~~~~~~
 
-#~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
-# Rear bumpers and distance sensors are disconnected
+active_ps = [0, 1, 2, 3, 4, 5, 6, 7]
+active_ts = [0, 1, 2, 3, 4, 5, 6, 7]
 
-active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
-active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+_proximityToCollisionConnections = annutils.matrix(len(active_ps), len(active_ts))
 
-motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
-
-if 'version' in opt:
-    if opt['version'] == 4:
-        active_ps = [0, 1, 2, 5, 6, 7] # v4
-        active_ts = [0, 1, 2, 5, 6, 7] # v4
-
-        motor_config = [[5, 6, 7], [0, 1, 2]] # v4
-
-# ---------------------------------------------------------------------
-
-_proximityToCollisionConnections = annutils.fullyConnected(active_ts, active_ps)
-
-_collisionToReverseConnections = annutils.sparselyConnected([0], [[0, 7]], gen = lambda:1.0)
+_collisionToReverseConnections = annutils.sparselyConnected([0], [[7, 0]], gen = lambda:1.0)
     
-_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), motor_config, gen = lambda:1.0)
+_collisionToMotorConnections = annutils.sparselyConnected(range(0, nMotors), [[4, 5, 6, 7], [0, 1, 2, 3]], gen = lambda:1.0)
 
 # Connectivity Matrices
 # for each neuron of layer[j] the matrix holds the weights to each neuron of level[i = j - 1]
@@ -59,16 +32,10 @@ connectivities = {
 # layer -> output
 # results of f(activation[i]) where f is the output function
 outputs = {
-    0: annutils.sparseArray(active_ps, [0.0 for _ in active_ps]), # output: Proximity -> Collision
-    1: annutils.sparseArray(active_ts, [0.0 for _ in active_ts]), # output: Collison -> Motor, Reverse
-    2: annutils.sparseArray(
-        list(connectivities[2].keys()), 
-        [0.0 for _ in connectivities[2].keys()]
-    ), # output: Reverse -> ...
-    3: annutils.sparseArray(
-        list(connectivities[3].keys()), 
-        [0.0 for _ in connectivities[3].keys()]
-    ) # output: Motor -> ...
+    0: annutils.array(nDistanceSensors), # output: Proximity -> Collision
+    1: annutils.array(nBumpers), # output: Collison -> Motor, Reverse
+    2: annutils.array(len(_collisionToReverseConnections)), # output: Reverse -> ...
+    3: annutils.array(len(_collisionToMotorConnections)) # output: Motor -> ...
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,7 +46,10 @@ outputs = {
 #       '-> activationFunction[layer]  
 #           '->  outputFunction[layer] as o
 
-# sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 
+# sensorInput as sIn, 
+# previousLayerOutput as plOut, 
+# weights[[layer - 1] -> [layer]] as w 
+# -> compositionFunction[layer] as h 
 compositionFunction = {
     0: lambda sIn, plOut, w: sIn,
     1: lambda sIn, plOut, w: sIn + annutils.weightedSum(w, plOut),

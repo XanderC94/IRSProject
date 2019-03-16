@@ -22,17 +22,14 @@ logger.info(opt)
 version_name = ""
 
 if 'version' in opt:
-    
+    logger.info(f"Using ANN v{opt['version']}")
     if opt['version'] == 3:
-        logger.info("Using ANN v3")
         # import libs.netversions.version3.neuralnetstructure as nns
         import libs.netversions.version3.evolutionlogic as ann
-    elif opt['version'] == 4:
-        logger.info("Using ANN v4")
-        # import libs.netversions.version4.neuralnetstructure as nns
-        import libs.netversions.version4.evolutionlogic as ann
+    # elif opt['version'] == 4:
+    #     # import libs.netversions.version4.neuralnetstructure as nns
+    #     import libs.netversions.version4.evolutionlogic as ann
     else:
-        logger.info("Using ANN v2")
         # import libs.netversions.version2.neuralnetstructure as nns
         import libs.netversions.version2.evolutionlogic as ann
 
@@ -40,11 +37,13 @@ if 'version' in opt:
 
 isTrainingModeActive = False
 
-executionMode=""
+executionMode = "train"
 if 'mode' in opt:
     executionMode = opt['mode']
-    if opt['mode'] == 'train':
+    if opt['mode'].lower() == 'train':
         isTrainingModeActive = True
+
+logger.info(f'Mode: {executionMode}')
         
 runtime = -1 # minutes, -1 -> Infinite
 if 'time' in opt:
@@ -58,18 +57,15 @@ simulatioLogPath = ""
 if 'simulatioLogPath' in opt:
     simulatioLogPath = opt['simulatioLogPath']
 
+
 if not isTrainingModeActive:
-    logger.info('Mode: Test')
     loadedModel = utils.loadTrainedModel(modelPath)
     logger.info(loadedModel.parameters)
     ann.setNetworkParameters(loadedModel.parameters)
     ann.setNetworkConnectivities(loadedModel.connectivities)
 
-elif 'parameters' in opt:
-    logger.info('Mode: Train')
-    logger.info(f"params:{opt['parameters']}")
-    ann.setNetworkParameters(opt['parameters'])
-
+logger.info(f"params:{ann.getNetworkParams()}")
+    
 if 'logging' in opt:
     logger.suppress(not opt['logging'])
 
