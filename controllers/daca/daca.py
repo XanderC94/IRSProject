@@ -70,6 +70,9 @@ elif 'parameters' in opt:
     logger.info(f"params:{opt['parameters']}")
     ann.setNetworkParameters(opt['parameters'])
 
+if 'logging' in opt:
+    logger.suppress(not opt['logging'])
+
 # Setup ------------------------------------
 
 log = utils.SimulationLog(f"{version_name}-{executionMode}")
