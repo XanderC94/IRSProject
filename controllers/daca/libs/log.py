@@ -13,7 +13,7 @@ class DACLogger:
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
-
+        
         self.buffer = []
 
     def info(self, message: str):
@@ -28,7 +28,8 @@ class DACLogger:
         self.buffer.clear()
 
     def flush(self):
-        self.__log()
+        if not self.logger.disabled:
+            self.__log()
 
     def suppress(self, boolean:bool):
         self.logger.disabled = boolean
