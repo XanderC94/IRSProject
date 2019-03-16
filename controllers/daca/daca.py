@@ -148,12 +148,16 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
 
     pass
 
+logger.flush()
+
 if isTrainingModeActive:
     parameters = utils.NetParameters.fromDict(ann.getNetworkParams())
     model = utils.TrainedModel(version_name, parameters, ann.getConnectivities())
     utils.saveTrainedModel(model, modelPath)
 
 log.saveTo(simulatioLogPath)
+
+print('All saved up!')
 
 # Enter here exit cleanup code.
 motors['left'].device.setVelocity(0.0)

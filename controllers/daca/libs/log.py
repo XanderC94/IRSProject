@@ -20,9 +20,15 @@ class DACLogger:
         if not self.logger.disabled:
             self.buffer.append(message)
             if len(self.buffer) > DACLogger.bufferLenght:
-                m = '\n'.join([ f'{s}' for s in self.buffer])
-                self.logger.info(m)
-                self.buffer.clear()        
+                self.__log()        
+
+    def __log(self):
+        m = '\n'.join([ f'{s}' for s in self.buffer])
+        self.logger.info(m)
+        self.buffer.clear()
+
+    def flush(self):
+        self.__log()
 
     def suppress(self, boolean:bool):
         self.logger.disabled = boolean
