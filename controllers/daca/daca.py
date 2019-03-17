@@ -67,14 +67,16 @@ elif 'parameters' in opt:
 
 # Setup ------------------------------------
 
-log = utils.SimulationLog(f"{version_name}-{executionMode}")
-logger = utils.DACLogger(f"{version_name}-{executionMode}")
-
 # create the Robot instance.
 # robot = Robot()
 # Supervisor extends Robot but has access to all the world info. 
 # Useful for automating the simulation.
 robot = Supervisor() 
+
+
+
+log = utils.SimulationLog(f"{version_name}-{executionMode}")
+logger = utils.DACLogger(f"{version_name}-{executionMode}")
 
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())

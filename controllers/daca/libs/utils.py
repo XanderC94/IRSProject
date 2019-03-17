@@ -119,8 +119,8 @@ class DACLogger:
 
 class SimulationLog:
     
-    def __init__(self, model_name: str, log: list = [], relative_model: TrainedModel = TrainedModel(model_name, NetParameters(0,0,0,0,0), {})):
-        self.model_name=model_name
+    def __init__(self, model_name: str, log: list = [], relative_model: TrainedModel = TrainedModel("", NetParameters(0,0,0,0,0), {})):
+        self.model_name = model_name
         self.log = log
         self.relative_model = relative_model
 
