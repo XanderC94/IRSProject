@@ -24,7 +24,7 @@ _opt = parseArgs(sys.argv)
 
 MIN_V = PI / (nBumpers / 2)
 
-if 'version' in _opt and _opt['version'] == '3':
+if 'version' in _opt and _opt['version'] == 3:
     MIN_V = 2 * PI / (nBumpers / 2)
 
 lss_rad = [1.27, 0.77, 0.0, 5.21, 4.21, 3.14159, 2.37, 1.87, 1.58784]
