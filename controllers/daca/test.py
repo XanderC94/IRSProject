@@ -2,6 +2,7 @@ import unittest
 from libs.annutils import *
 from libs.netversions.version3 import *
 from libs.learningparameters import *
+from libs.parameterchangingstrategies import *
 from libs.utils import *
 
 
@@ -71,10 +72,27 @@ class TestStringMethods(unittest.TestCase):
         value = 2.0
         parameters.setParameter("learning_rate", value)
         self.assertEqual(value, parameters.learning_rate)
-        
+
         value = 3.0
         parameters.setParameter("forget_rate", value)
         self.assertEqual(value, parameters.forget_rate)
+
+    def test_parameterChanger(self):
+        parameters = LearningParameters(3.0, 4.0, 5.0)
+        minVal = 3.0
+        maxVal = 4.0
+        step = 0.1
+        changer = ParameterChanger(parameters, "collision_threshold", minVal, maxVal, step)
+        current_val = minVal
+        while not changer.hasEnded:
+            changer.updateParameter()
+            current_val = current_val + step if not changer.hasEnded else maxVal 
+            self.assertEqual(current_val,parameters.collision_threshold)
+            pass
+        changer.updateParameter()
+        self.assertEqual(maxVal, parameters.collision_threshold)
+        
+
 
 
 if __name__ == '__main__':
