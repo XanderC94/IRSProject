@@ -1,6 +1,7 @@
 import unittest
 from libs.annutils import *
 from libs.netversions.version3 import *
+from libs.learningparameters import *
 from libs.utils import *
 
 
@@ -61,6 +62,19 @@ class TestStringMethods(unittest.TestCase):
         print(f"LOADED MODEL: {str(loaded_model)}")        
         self.assertEqual(str(loaded_model), str(test_model))
 
+    def test_setParameter(self):
+        parameters = LearningParameters(5.0, 6.0, 7.0)
+        value = 1.0
+        parameters.setParameter("collision_threshold", value)
+        self.assertEqual(value, parameters.collision_threshold)
+
+        value = 2.0
+        parameters.setParameter("learning_rate", value)
+        self.assertEqual(value, parameters.learning_rate)
+        
+        value = 3.0
+        parameters.setParameter("forget_rate", value)
+        self.assertEqual(value, parameters.forget_rate)
 
 
 if __name__ == '__main__':
