@@ -1,0 +1,8 @@
+{
+    "version": 2,
+    "time": 120,
+    "mode": "test",
+    "modelPath": "../../model/scraps.json",
+    "simulationLogPath": "../../logs/",
+    "logging": false
+}

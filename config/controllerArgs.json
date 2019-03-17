@@ -1,0 +1,15 @@
+{
+    "version": 2,
+    "parameters": {     
+        "collisionThreshold": 0.65,
+        "motorThreshold": 1,
+        "reverseThreshold": 2,
+        "learningRate": 0.05,
+        "forgetRate": 0.8
+    },
+    "time": 120,
+    "mode": "train",
+    "logging": false,
+    "modelPath": "../../model/scraps.json",
+    "simulationLogPath": "../../logs/"
+}
