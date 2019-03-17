@@ -13,16 +13,16 @@ MOTOR_THRESHOLD = 1
 REVERSE_THRESHOLD = 2
 
 if 'parameters' in opt:
-    if 'learningRate' in opt:
-        LEARNING_RATE = opt['learningRate']
-    if 'forgetRate' in opt:
-        FORGET_RATE = opt['forgetRate']
-    if 'collisionThreshold' in opt:
-        COLLISION_THRESHOLD = opt['collisionThreshold']
-    if 'motorThreshold' in opt:
-        MOTOR_THRESHOLD = opt['motorThreshold']
-    if 'reverseThreshold' in opt:
-        REVERSE_THRESHOLD = opt['reverseThreshold']
+    if 'learningRate' in opt['parameters']:
+        LEARNING_RATE = opt['parameters']['learningRate']
+    if 'forgetRate' in opt['parameters']:
+        FORGET_RATE = opt['parameters']['forgetRate']
+    if 'collisionThreshold' in opt['parameters']:
+        COLLISION_THRESHOLD = opt['parameters']['collisionThreshold']
+    if 'motorThreshold' in opt['parameters']:
+        MOTOR_THRESHOLD = opt['parameters']['motorThreshold']
+    if 'reverseThreshold' in opt['parameters']:
+        REVERSE_THRESHOLD = opt['parameters']['reverseThreshold']
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
