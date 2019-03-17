@@ -29,12 +29,13 @@ class NetParameters:
         )
 
 class TrainedModel:
-    def __init__(self, version_name: str, parameters: NetParameters, connectivities: dict):
-        self.version_name = version_name
+    def __init__(self, version: int, parameters: NetParameters, connectivities: dict):
+        self.version = version
         self.parameters = parameters
         self.connectivities = connectivities
+
     def __str__(self):
-        return "Model version name: " + self.version_name + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
+        return "Model version name: " + str(self.version) + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
 
 
 def saveTrainedModel(model: TrainedModel, path: str):
@@ -67,9 +68,7 @@ def loadTrainedModel(path: str) -> TrainedModel:
     loaded_json["parameters"]["reverse_threshold"])
     
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
-    return TrainedModel(loaded_json["version_name"], loaded_parameters, connectivities)
-
-
+    return TrainedModel(loaded_json["version"], loaded_parameters, connectivities)
 
 class Position:
 
@@ -84,43 +83,20 @@ class Position:
 
 class LogEntry:
 
-    def __init__(self, step_number: int, touched: bool, position: Position, nTouches: int):
+    def __init__(self, step_number: int, collision: bool, activation : bool, position: Position, nTouches: int):
 
         self.step_number = step_number
-        self.touched = touched
+        self.collision = collision
         self.position = position
         self.nTouches = nTouches
-
-
-class DACLogger:
-
-    def __init__(self, name : str, path: str = ""):
-
-        self.logger = logging.getLogger(name)
-
-        formatter = logging.Formatter('%(message)s')
-
-        if len(path) > 0:
-            fh = logging.FileHandler(path)
-            fh.setLevel(logging.INFO)
-            fh.setFormatter(formatter)
-            self.logger.addHandler(fh)
-    
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
-
-    def debug(self, message: str):
-        self.logger.debug(message)
-
-    def info(self, message: str):
-        self.logger.info(message)
+        self.activation = activation
 
 class SimulationLog:
     
-    def __init__(self, model_name: str, log: list = [], relative_model: TrainedModel = TrainedModel("", NetParameters(0,0,0,0,0), {})):
-        self.model_name = model_name
+    def __init__(self, version: int, log: list = [], relative_model: TrainedModel = TrainedModel("", NetParameters(0,0,0,0,0), {}),  mode:str,  time: int):
+        self.version = version
+        self.mode = mode
+        self.time = time
         self.log = log
         self.relative_model = relative_model
 
@@ -131,7 +107,8 @@ class SimulationLog:
         self.relative_model = relative_model
 
     def saveTo(self, directoryPath: str) -> str:
-        file_name = f"{directoryPath}SimLog{self.model_name}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g.json"
+        file_name = f"{directoryPath}SimLog_AnnV{self.version}-{self.mode}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g.json"
+        print(file_name)
         with open(file_name, 'w') as outfile:
             json.dump(self.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
         return file_name

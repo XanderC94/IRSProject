@@ -13,59 +13,63 @@ from libs.sensor import sensorArray
 from libs.motorresponse import wheelVelocity
 import libs.motor as motor
 import libs.utils as utils
+from libs.log import logger
 
 opt = parseArgs(sys.argv)
 
-print(opt)
+logger.info(opt)
 
-version_name = ""
+version = ""
 
 if 'version' in opt:
-
+    logger.info(f"Using ANN v{opt['version']}")
     if opt['version'] == 3:
-        print("Using ANN v3")
         import libs.netversions.version3.neuralnetstructure as nns
         import libs.netversions.version3.evolutionlogic as ann
+    # elif opt['version'] == 4:
+    #     # import libs.netversions.version4.neuralnetstructure as nns
+    #     import libs.netversions.version4.evolutionlogic as ann
     else:
-        print("Using ANN v2")
         import libs.netversions.version2.neuralnetstructure as nns
         import libs.netversions.version2.evolutionlogic as ann
 
-    version_name = f"Version{opt['version']}"
+    version = opt['version']
 
 isTrainingModeActive = False
-trainTime = -1 # minutes, -1 -> Infinite
 
-executionMode=""
+executionMode = "train"
 if 'mode' in opt:
     executionMode = opt['mode']
-    if opt['mode'] == 'train':
+    if opt['mode'].lower() == 'train':
         isTrainingModeActive = True
+
+logger.info(f'Mode: {executionMode}')
         
-    if 'time' in opt:
-        trainTime = opt['time']
+runtime = -1 # minutes, -1 -> Infinite
+if 'time' in opt:
+    runtime = opt['time']
 
 modelPath = ""
 if 'modelPath' in opt:
     modelPath = opt['modelPath']
 
-simulatioLogPath = ""
-if 'simulatioLogPath' in opt:
-    simulatioLogPath = opt['simulatioLogPath']
+simulationLogPath = ""
+if 'simulationLogPath' in opt:
+    simulationLogPath = opt['simulationLogPath']
 
 if not isTrainingModeActive:
-    print('Mode: Test')
     loadedModel = utils.loadTrainedModel(modelPath)
-    print(loadedModel.parameters)
+    logger.info(loadedModel.parameters)
     ann.setNetworkParameters(loadedModel.parameters)
     ann.setNetworkConnectivities(loadedModel.connectivities)
 
-elif 'parameters' in opt:
-    print('Mode: Train')
-    print('params:', opt['parameters'])
-    ann.setNetworkParameters(opt['parameters'])
+logger.info(f"params:{ann.getNetworkParams()}")
+    
+if 'logging' in opt:
+    logger.suppress(not opt['logging'])
 
 # Setup ------------------------------------
+
 
 # create the Robot instance.
 # robot = Robot()
@@ -73,17 +77,15 @@ elif 'parameters' in opt:
 # Useful for automating the simulation.
 robot = Supervisor() 
 
-
-
-log = utils.SimulationLog(f"{version_name}-{executionMode}")
+log = utils.SimulationLog(version, executionMode, modelPath, runtime)
 logger = utils.DACLogger(f"{version_name}-{executionMode}")
 
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())
 nSteps = 0
-maxSteps = int((trainTime * 60 * 1000) / timeStep)
+maxSteps = int((runtime * 60 * 1000) / timeStep)
 
-print(f"TIME:{trainTime}min | STEP-TIME:{timeStep}ms => MAX-STEPS: {maxSteps}")
+logger.info(f"TIME:{runtime} min | STEP-TIME:{timeStep} ms => MAX-STEPS: {maxSteps}")
 
 # You should insert a getDevice-like function in order to get the
 # instance of a device of the robot.
@@ -117,11 +119,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     
     hasTouched = (1 in bumps)
     
-    if hasTouched: 
-        logger.debug("TOUCHING!")
-        nTouches += 1
-
-    logger.debug(f"Distances:{distances}")
+    if hasTouched: nTouches += 1
 
     # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -129,36 +127,35 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
 
     # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
     lv, rv = ann.calculateMotorSpeed()
-    logger.debug(f"Speed:{lv}, {rv}")
     motors['left'].device.setVelocity(lv)
     motors['right'].device.setVelocity(rv)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    if isTrainingModeActive:
-        ann.updateWeights()
+    if isTrainingModeActive: ann.updateWeights()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    logger.debug(f"N° of touches: {nTouches}")
-    logger.debug('\n')
-
+   
     coordinates = robot.getSelf().getField("translation").getSFVec3f()
     robotPosition = utils.Position.fromTuple(coordinates)
 
-    log.addLogEntry(utils.LogEntry(nSteps, hasTouched, robotPosition, nTouches))
+    log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in nns.outputs[1].values(), robotPosition, nTouches))
 
     nSteps += 1
 
     pass
 
+logger.flush()
+
 if isTrainingModeActive:
     parameters = utils.NetParameters.fromDict(ann.getNetworkParams())
-    model = utils.TrainedModel(version_name, parameters, nns.connectivities)
+    model = utils.TrainedModel(version, parameters, ann.getConnectivities())
     utils.saveTrainedModel(model, modelPath)
 
 log.setReferenceModel(model)
-log.saveTo(simulatioLogPath)
+log.saveTo(simulationLogPath)
+
+print('All saved up!')
 
 # Enter here exit cleanup code.
 motors['left'].device.setVelocity(0.0)

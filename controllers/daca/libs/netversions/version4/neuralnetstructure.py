@@ -1,10 +1,7 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
-import sys
-from libs.argutils import parseArgs
-# Learning Parameters #########################
 
-opt = parseArgs(sys.argv)
+# Learning Parameters #########################
 
 LEARNING_RATE = 0.05
 FORGET_RATE = 0.8
@@ -12,34 +9,16 @@ COLLISION_THRESHOLD = 0.65
 MOTOR_THRESHOLD = 1
 REVERSE_THRESHOLD = 2
 
-if 'parameters' in opt:
-    if 'learningRate' in opt:
-        LEARNING_RATE = opt['learningRate']
-    if 'forgetRate' in opt:
-        FORGET_RATE = opt['forgetRate']
-    if 'collisionThreshold' in opt:
-        COLLISION_THRESHOLD = opt['collisionThreshold']
-    if 'motorThreshold' in opt:
-        MOTOR_THRESHOLD = opt['motorThreshold']
-    if 'reverseThreshold' in opt:
-        REVERSE_THRESHOLD = opt['reverseThreshold']
-
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
 
-active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
-active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+# active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+# active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
+active_ps = [0, 1, 2, 5, 6, 7] # v4
+active_ts = [0, 1, 2, 5, 6, 7] # v4
 
-motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
-
-if 'version' in opt:
-    if opt['version'] == 4:
-        active_ps = [0, 1, 2, 5, 6, 7] # v4
-        active_ts = [0, 1, 2, 5, 6, 7] # v4
-
-        motor_config = [[5, 6, 7], [0, 1, 2]] # v4
-
-# ---------------------------------------------------------------------
+# motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
+motor_config = [[5, 6, 7], [0, 1, 2]] # v4
 
 _proximityToCollisionConnections = annutils.fullyConnected(active_ts, active_ps)
 

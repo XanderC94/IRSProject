@@ -1,0 +1,7 @@
+{
+    "version": 2,
+    "time": 120,
+    "mode": "test",
+    "modelPath": "../../model/dac_model_v2.json",
+    "simulatioLogPath": "../../logs/"
+}

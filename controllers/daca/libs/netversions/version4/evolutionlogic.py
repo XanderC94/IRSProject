@@ -1,6 +1,6 @@
 import libs.annutils as annutils
 from libs.utils import NetParameters
-import libs.netversions.version2.neuralnetstructure as nns
+import libs.netversions.version4.neuralnetstructure as nns
 from libs.log import logger
 from libs.motorresponse import wheelVelocity
 
