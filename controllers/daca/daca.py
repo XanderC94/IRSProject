@@ -19,21 +19,21 @@ opt = parseArgs(sys.argv)
 
 logger.info(opt)
 
-version_name = ""
+version = ""
 
 if 'version' in opt:
     logger.info(f"Using ANN v{opt['version']}")
     if opt['version'] == 3:
-        # import libs.netversions.version3.neuralnetstructure as nns
+        import libs.netversions.version3.neuralnetstructure as nns
         import libs.netversions.version3.evolutionlogic as ann
     # elif opt['version'] == 4:
     #     # import libs.netversions.version4.neuralnetstructure as nns
     #     import libs.netversions.version4.evolutionlogic as ann
     else:
-        # import libs.netversions.version2.neuralnetstructure as nns
+        import libs.netversions.version2.neuralnetstructure as nns
         import libs.netversions.version2.evolutionlogic as ann
 
-    version_name = f"Version{opt['version']}"
+    version = opt['version']
 
 isTrainingModeActive = False
 
@@ -53,10 +53,9 @@ modelPath = ""
 if 'modelPath' in opt:
     modelPath = opt['modelPath']
 
-simulatioLogPath = ""
-if 'simulatioLogPath' in opt:
-    simulatioLogPath = opt['simulatioLogPath']
-
+simulationLogPath = ""
+if 'simulationLogPath' in opt:
+    simulationLogPath = opt['simulationLogPath']
 
 if not isTrainingModeActive:
     loadedModel = utils.loadTrainedModel(modelPath)
@@ -71,7 +70,7 @@ if 'logging' in opt:
 
 # Setup ------------------------------------
 
-log = utils.SimulationLog(f"{version_name}-{executionMode}")
+log = utils.SimulationLog(version, executionMode, modelPath, runtime)
 
 # create the Robot instance.
 # robot = Robot()
@@ -138,7 +137,7 @@ while robot.step(timeStep) != -1 and nSteps != maxSteps:
     coordinates = robot.getSelf().getField("translation").getSFVec3f()
     robotPosition = utils.Position.fromTuple(coordinates)
 
-    log.addLogEntry(utils.LogEntry(nSteps, hasTouched, robotPosition, nTouches))
+    log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in nns.outputs[1].values(), robotPosition, nTouches))
 
     nSteps += 1
 
@@ -148,10 +147,10 @@ logger.flush()
 
 if isTrainingModeActive:
     parameters = utils.NetParameters.fromDict(ann.getNetworkParams())
-    model = utils.TrainedModel(version_name, parameters, ann.getConnectivities())
+    model = utils.TrainedModel(version, parameters, ann.getConnectivities())
     utils.saveTrainedModel(model, modelPath)
 
-log.saveTo(simulatioLogPath)
+log.saveTo(simulationLogPath)
 
 print('All saved up!')
 

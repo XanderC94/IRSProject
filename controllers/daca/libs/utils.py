@@ -29,12 +29,13 @@ class NetParameters:
         )
 
 class TrainedModel:
-    def __init__(self, version_name: str, parameters: NetParameters, connectivities: dict):
-        self.version_name = version_name
+    def __init__(self, version: int, parameters: NetParameters, connectivities: dict):
+        self.version = version
         self.parameters = parameters
         self.connectivities = connectivities
+
     def __str__(self):
-        return "Model version name: " + self.version_name + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
+        return "Model version name: " + str(self.version) + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
 
 
 def saveTrainedModel(model: TrainedModel, path: str):
@@ -67,7 +68,7 @@ def loadTrainedModel(path: str) -> TrainedModel:
     loaded_json["parameters"]["reverse_threshold"])
     
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
-    return TrainedModel(loaded_json["version_name"], loaded_parameters, connectivities)
+    return TrainedModel(loaded_json["version"], loaded_parameters, connectivities)
 
 class Position:
 
@@ -82,24 +83,29 @@ class Position:
 
 class LogEntry:
 
-    def __init__(self, step_number: int, touched: bool, position: Position, nTouches: int):
+    def __init__(self, step_number: int, collision: bool, activation : bool, position: Position, nTouches: int):
 
         self.step_number = step_number
-        self.touched = touched
+        self.collision = collision
         self.position = position
         self.nTouches = nTouches
+        self.activation = activation
 
 class SimulationLog:
     
-    def __init__(self, model_name: str, log: list = []):
-        self.model_name=model_name
+    def __init__(self, version:int, mode:str, model: str, time: int, log: list = []):
+        self.version = version
+        self.mode = mode
+        self.model = model
+        self.time = time
         self.log = log
 
     def addLogEntry(self, entry: LogEntry):
         self.log.append(entry)
 
     def saveTo(self, directoryPath: str) -> str:
-        file_name = f"{directoryPath}SimLog{self.model_name}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g.json"
+        file_name = f"{directoryPath}SimLog_AnnV{self.version}-{self.mode}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g.json"
+        print(file_name)
         with open(file_name, 'w') as outfile:
             json.dump(self.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
         return file_name
