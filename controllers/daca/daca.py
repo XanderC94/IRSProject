@@ -77,8 +77,7 @@ if 'logging' in opt:
 # Useful for automating the simulation.
 robot = Supervisor() 
 
-log = utils.SimulationLog(version, executionMode, modelPath, runtime)
-logger = utils.DACLogger(f"{version_name}-{executionMode}")
+log = utils.SimulationLog(version, executionMode, runtime, modelPath)
 
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())
