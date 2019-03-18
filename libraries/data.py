@@ -77,10 +77,10 @@ def extractData(path: Path):
     # either end a collision (after colliding) or avoid an obstacle
     stats['mEventSteps'] = stats['nSteps'] / stats['nEvents']
     
-    # %overallSteps = % of steps related to the total number of steps done
-    # This value greatly depends -- indirectly -- on the composition (difficulty and variance) of the environment
-    # Since considere ALL the steps and not only the significative ones (Collisions and Avoidances)
-    stats['%overallSteps'] = stats['nSteps'] / stats['nSteps'].sum()
+    # # %overallSteps = % of steps related to the total number of steps done
+    # # This value greatly depends -- indirectly -- on the composition (difficulty and variance) of the environment
+    # # Since considere ALL the steps and not only the significative ones (Collisions and Avoidances)
+    # stats['%overallSteps'] = stats['nSteps'] / stats['nSteps'].sum()
     
     # %steps = % of steps related to the number of positive activations of the neurons in the collision layer 
     # This value exteem the goodness of the learning in relation to the number of SINGLE activations 
@@ -90,10 +90,10 @@ def extractData(path: Path):
         stats[stats['activation'] == False]['nSteps'] / stats[stats['activation'] == False]['nSteps'].sum()
     )
     
-    # %overallEvents = % of events {'Collision', 'Avoidance', 'Going By'} related to the total number of events
-    # This Value as well depends -- indirectly -- on the composition (difficulty and variance) of the environment
-    # Since considere ALL the events and not only the significative ones (Collisions and Avoidances)
-    stats['%overallEvents'] = stats['nEvents'] / stats['nEvents'].sum()
+    # # %overallEvents = % of events {'Collision', 'Avoidance', 'Going By'} related to the total number of events
+    # # This Value as well depends -- indirectly -- on the composition (difficulty and variance) of the environment
+    # # Since considere ALL the events and not only the significative ones (Collisions and Avoidances)
+    # stats['%overallEvents'] = stats['nEvents'] / stats['nEvents'].sum()
     
     # %events = % of events related to the number of positive activations of the neurons in the collision layer 
     # This value exteem the goodness of the learning in relation to the number of (grouped) SEQUENTIAL (see NOTE #1) activations 
