@@ -102,7 +102,7 @@ class LogEntry:
 
 class SimulationLog:
     
-    def __init__(self, version: int, mode:str, time: int, log: list = [], relative_model: TrainedModel = TrainedModel.emptyModel()):
+    def __init__(self, version: int, mode:str, time: int, relative_model: TrainedModel = TrainedModel.emptyModel(), log: list = []):
         self.version = version
         self.mode = mode
         self.time = time
