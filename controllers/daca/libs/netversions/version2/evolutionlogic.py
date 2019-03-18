@@ -155,7 +155,7 @@ def updateWeights():
     proxOut = nns.outputs[0]
     collOut = nns.outputs[1]
     
-    updatedWeights = annutils.updateSparseConnectivities(nns.connectivities[1], collOut, proxOut, nns.LEARNING_RATE, nns.FORGET_RATE)
+    updatedWeights = annutils.updateSparseConnectivities(nns.connectivities[1], collOut, proxOut, nns.learningParameters.learningRate, nns.learningParameters.forgetRate)
     nns.connectivities.update({1: updatedWeights})
     
 def calculateMotorSpeed():

@@ -85,7 +85,7 @@ def processAnnState(distances:list, bumps:list):
 def updateWeights():
     # Now apply what It has learned
     # Weights Updates
-    updatedWeights = ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], LEARNING_RATE, FORGET_RATE)
+    updatedWeights = ann.updateConnectivities(connectivities[1], outputs[1], outputs[0], learningParameters.learningRate, learningParameters.forgetRate)
     connectivities.update({1: updatedWeights})
     
 def calculateMotorSpeed():

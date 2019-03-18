@@ -10,15 +10,10 @@ A neuron for each proximity sensors
 """
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V, PI
 import libs.annutils as ann
+from libs.learningparameters import *
 
-COLLISION_THRESHOLD = 0.65 #float(opt['coll-ths'])
-LEARNING_RATE = 0.08 #float(opt['lrate'])
-FORGET_RATE = 0.8 #float(opt['frate'])
 
-#################################################
-
-MOTOR_THRESHOLD = 1;
-REVERSE_THRESHOLD = 2;
+learningParameters = LearningParameters(0.08, 0.8, 0.65, 1, 2)
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE  ~~~~~~~~~~~~~~~~~~~~~
 
@@ -68,9 +63,9 @@ compositionFunction = {
 
 activationFunction = {
     0: lambda h: ann.ActivationFunction.exp_inv(h), 
-    1: lambda h: ann.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: ann.ActivationFunction.binary_threshold(h, REVERSE_THRESHOLD), 
-    3: lambda h: ann.ActivationFunction.linear_threshold(h, MOTOR_THRESHOLD) 
+    1: lambda h: ann.ActivationFunction.binary_threshold(h, learningParameters.collisionThreshold),
+    2: lambda h: ann.ActivationFunction.binary_threshold(h, learningParameters.reverseThreshold), 
+    3: lambda h: ann.ActivationFunction.linear_threshold(h, learningParameters.motorThreshold) 
 }
 
 # activationLevel[layer] as a -> output[layer] as o

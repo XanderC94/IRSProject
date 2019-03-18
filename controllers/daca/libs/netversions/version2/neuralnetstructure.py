@@ -1,28 +1,27 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
+from libs.learningparameters import *
 import sys
 from libs.argutils import parseArgs
 # Learning Parameters #########################
 
 opt = parseArgs(sys.argv)
 
-LEARNING_RATE = 0.05
-FORGET_RATE = 0.8
-COLLISION_THRESHOLD = 0.65
-MOTOR_THRESHOLD = 1
-REVERSE_THRESHOLD = 2
+learningParameters = LearningParameters(0.05, 0.8, 0.65, 1, 2)
+
+
 
 if 'parameters' in opt:
     if 'learningRate' in opt:
-        LEARNING_RATE = opt['learningRate']
+        learningParameters.learningRate = opt['learningRate']
     if 'forgetRate' in opt:
-        FORGET_RATE = opt['forgetRate']
+        learningParameters.forgetRate = opt['forgetRate']
     if 'collisionThreshold' in opt:
-        COLLISION_THRESHOLD = opt['collisionThreshold']
+        learningParameters.collisionThreshold = opt['collisionThreshold']
     if 'motorThreshold' in opt:
-        MOTOR_THRESHOLD = opt['motorThreshold']
+        learningParameters.motorThreshold = opt['motorThreshold']
     if 'reverseThreshold' in opt:
-        REVERSE_THRESHOLD = opt['reverseThreshold']
+        learningParameters.reverseThreshold = opt['reverseThreshold']
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
@@ -90,9 +89,9 @@ compositionFunction = {
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer])
 activationFunction = {
     0: lambda h: annutils.ActivationFunction.exp_inv(h), 
-    1: lambda h: annutils.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: annutils.ActivationFunction.binary_threshold(h, REVERSE_THRESHOLD),
-    3: lambda h: annutils.ActivationFunction.linear_threshold(h, MOTOR_THRESHOLD) 
+    1: lambda h: annutils.ActivationFunction.binary_threshold(h, learningParameters.collisionThreshold),
+    2: lambda h: annutils.ActivationFunction.binary_threshold(h, learningParameters.reverseThreshold),
+    3: lambda h: annutils.ActivationFunction.linear_threshold(h, learningParameters.motorThreshold) 
 }
 
 # activationLevel[layer] as a -> output[layer] as o
