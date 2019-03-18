@@ -1,5 +1,5 @@
 {
-    "version": 4,
+    "version": 2,
     "parameters": {     
         "collisionThreshold": 0.65,
         "motorThreshold": 1,
@@ -9,7 +9,7 @@
     },
     "time": 120,
     "mode": "train",
-    "logging": true,
-    "modelPath": "../../model/dac_model_v4.1.json",
-    "simulatioLogPath": "../../logs/"
+    "logging": false,
+    "modelPath": "../../model/scraps.json",
+    "simulationLogPath": "../../logs/"
 }
