@@ -84,6 +84,8 @@ if 'changingInfo' in opt:
 # Supervisor extends Robot but has access to all the world info. 
 # Useful for automating the simulation.
 robot = Supervisor() 
+initialPositionCoordinates = robot.getSelf().getField("translation").getSFVec3f()
+initialOrientation = robot.getSelf().getField("rotation").getSFRotation()
 
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())
@@ -101,6 +103,8 @@ bumpers = sensorArray(ID.bumpers, timeStep, lambda name: robot.getTouchSensor(na
 parameterChanger = ParameterChanger.fromConfig(nns.learningParameters, changingInfo)
 
 while not parameterChanger.hasEnded:
+    robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
+    robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
     #initialize simulation
     log = utils.SimulationLog(version, executionMode, runtime, modelPath)
     
@@ -172,9 +176,15 @@ while not parameterChanger.hasEnded:
     # Cleanup code.
     motors['left'].device.setVelocity(0.0)
     motors['right'].device.setVelocity(0.0)
-
-    robot.simulationSetMode(robot.SIMULATION_MODE_PAUSE)
-    robot.simulationReset()
+    
+    robot.simulationResetPhysics()
 
     parameterChanger.updateParameter()
     pass
+
+# Cleanup code.
+motors['left'].device.setVelocity(0.0)
+motors['right'].device.setVelocity(0.0)
+
+robot.simulationSetMode(robot.SIMULATION_MODE_PAUSE)
+robot.simulationReset()
