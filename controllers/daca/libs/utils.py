@@ -19,16 +19,16 @@ class TrainedModel:
 
 def generateFileName(model: TrainedModel):
     p = model.parameters
-    pstr = f'lr{p.learningRate}-fr{p.forgetRate}-ct{p.collisionThreshold}'
+    pstr = f'lr{p.learningRate}.fr{p.forgetRate}.ct{p.collisionThreshold}'
     date = f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
-    return f"Annv{model.version}-{pstr}-{date}"
+    return f"annv{model.version}.{pstr}.{date}"
 
 def writeModelOnFile(model: TrainedModel, file_path: str):
     with open(file_path, 'w') as outfile:
         json.dump(model.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
 
 def saveTrainedModel(model: TrainedModel, directoryPath: str):
-    file_path = f"{directoryPath}Model{generateFileName(model)}.json"
+    file_path = f"{directoryPath}model.{generateFileName(model)}.json"
     writeModelOnFile(model, file_path)
 
 def recursiveExtractDictWithIntKey(json)-> dict:
@@ -99,7 +99,7 @@ class SimulationLog:
 
     def saveTo(self, directoryPath: str) -> str:
 
-        file_name = f"{directoryPath}SimLog_{generateFileName(self.model)}.json"
+        file_name = Path(directoryPath) / f"simlog.{generateFileName(self.model)}.json"
         
         with open(file_name, 'w') as outfile:
             json.dump(self.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
