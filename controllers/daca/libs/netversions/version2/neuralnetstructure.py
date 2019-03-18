@@ -3,6 +3,9 @@ import libs.annutils as annutils
 from libs.learningparameters import *
 import sys
 from libs.argutils import parseArgs
+
+opt = parseArgs(sys.argv)
+
 # Learning Parameters #########################
 
 learningParameters = LearningParameters(0.05, 0.8, 0.65, 1, 2)

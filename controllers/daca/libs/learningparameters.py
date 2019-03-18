@@ -1,4 +1,5 @@
 class LearningParameters:
+    
     LEARNING_RATE_STR = "learningRate"
     FORGET_RATE_STR = "forgetRate"
     COLLISION_THRESHOLD_STR = "collisionThreshold"
@@ -18,7 +19,7 @@ class LearningParameters:
         self.reverseThreshold = reverseThreshold
 
     def __str__(self):
-        return (f"learningRate: {self.learningRate}, forgetRate: {self.forgetRate}, collisionThreshold: {self.collisionThreshold}, motorThreshold:  {self.motorThreshold}, reverseThreshold: {self.reverseThreshold}")
+        return f"learningRate: {self.learningRate}, forgetRate: {self.forgetRate}, collisionThreshold: {self.collisionThreshold}, motorThreshold:  {self.motorThreshold}, reverseThreshold: {self.reverseThreshold}"
 
     @staticmethod
     def fromDict(params: dict):

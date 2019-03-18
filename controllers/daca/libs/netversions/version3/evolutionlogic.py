@@ -13,14 +13,17 @@ def setNetworkParameters(params: dict or LearningParameters):
     elif isinstance(params, LearningParameters):
         nns.learningParameters = params
 
-def getNetworkParams() -> dict:
-    nns.learningParameters.toDict()
+def getNetworkParams() -> LearningParameters:
+    return nns.learningParameters
 
 def setNetworkConnectivities(conn:dict):
     nns.connectivities = conn
 
 def getConnectivities():
     return nns.connectivities
+
+def getLayerOutput(layer:int):
+    return nns.outputs[layer]
 
 def processProximityLayer(distances: list):
     # DISTANCES_INPUT -> PROXIMITY  ---------------------------- LAYER 0

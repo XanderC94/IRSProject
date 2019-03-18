@@ -2,120 +2,66 @@
 
 # You may need to import some classes of the controller module. Ex:
 #  from controller import Robot, LED, DistanceSensor
-from controller import *
-import sys, os
+# from controller import *
+import sys, os, copy
 
 print(os.getcwd())
 
-from libs.epuck import ID
-from libs.argutils import parseArgs
-from libs.sensor import sensorArray
+import libs.epuck as epuck
+from libs.argutils import Options
 from libs.motorresponse import wheelVelocity
-import libs.motor as motor
 import libs.utils as utils
 from libs.log import logger
 from libs.learningparameters import LearningParameters
 from libs.parameterchangingstrategies import ParameterChanger
 
-opt = parseArgs(sys.argv)
+opt = Options.fromArgv(sys.argv)
 
 logger.info(opt)
-print(opt)
 
-version = ""
+if opt.version == 3:
+    # import libs.netversions.version3.neuralnetstructure as nns
+    import libs.netversions.version3.evolutionlogic as ann
+# elif opt['version'] == 4:
+#     # import libs.netversions.version4.neuralnetstructure as nns
+#     import libs.netversions.version4.evolutionlogic as ann
+else:
+    # import libs.netversions.version2.neuralnetstructure as nns
+    import libs.netversions.version2.evolutionlogic as ann
 
-if 'version' in opt:
-    logger.info(f"Using ANN v{opt['version']}")
-    if opt['version'] == 3:
-        import libs.netversions.version3.neuralnetstructure as nns
-        import libs.netversions.version3.evolutionlogic as ann
-    # elif opt['version'] == 4:
-    #     # import libs.netversions.version4.neuralnetstructure as nns
-    #     import libs.netversions.version4.evolutionlogic as ann
-    else:
-        import libs.netversions.version2.neuralnetstructure as nns
-        import libs.netversions.version2.evolutionlogic as ann
-
-    version = opt['version']
-
-isTrainingModeActive = False
-
-executionMode = "train"
-if 'mode' in opt:
-    executionMode = opt['mode']
-    if opt['mode'].lower() == 'train':
-        isTrainingModeActive = True
-
-logger.info(f'Mode: {executionMode}')
+logger.info(f"Using ANN v{opt.version}")
         
-runtime = -1 # minutes, -1 -> Infinite
-if 'time' in opt:
-    runtime = opt['time']
+model = None
 
-modelPath = ""
-if 'modelPath' in opt:
-    modelPath = opt['modelPath']
+if not opt.isTrainingModeActive:
 
-simulationLogPath = ""
-if 'simulationLogPath' in opt:
-    simulationLogPath = opt['simulationLogPath']
+    model = utils.loadTrainedModel(opt.modelPath)
+    logger.info(model.parameters)
+    ann.setNetworkParameters(model.parameters)
+    ann.setNetworkConnectivities(model.connectivities)
 
-if not isTrainingModeActive:
-    loadedModel = utils.loadTrainedModel(modelPath)
-    logger.info(loadedModel.parameters)
-    ann.setNetworkParameters(loadedModel.parameters)
-    ann.setNetworkConnectivities(loadedModel.connectivities)
+elif len(opt.parameters) > 0:
+    ann.setNetworkParameters(opt.parameters)
 
 logger.info(f"params:{ann.getNetworkParams()}")
-    
-if 'logging' in opt:
-    logger.suppress(not opt['logging'])
-
-if 'parameters' in opt:
-    nns.learningParameters = LearningParameters.fromDict(opt['parameters'])
-
-changingInfo = {}
-if 'changingInfo' in opt:
-    changingInfo = opt['changingInfo']
 
 # Setup ------------------------------------
 
-# create the Robot instance.
-# robot = Robot()
-# Supervisor extends Robot but has access to all the world info. 
-# Useful for automating the simulation.
-robot = Supervisor() 
-initialPositionCoordinates = robot.getSelf().getField("translation").getSFVec3f()
-initialOrientation = robot.getSelf().getField("rotation").getSFRotation()
+# See libs.epuck
 
-# get the time step (ms) of the current world.
-timeStep = int(robot.getBasicTimeStep())
+# ------------------------------------------------------------------------------------------------------
 
-#Retrieve device references
-leds = sensorArray(ID.leds, timeStep, lambda name: robot.getLED(name), enable = False)
-motors = sensorArray(ID.motors, timeStep, lambda name: robot.getMotor(name), enable = False)
+def simulation(opt : Options, model: utils.TrainedModel):
 
-dss = sensorArray(ID.distances, timeStep, lambda name: robot.getDistanceSensor(name))
-lss = sensorArray(ID.lights, timeStep, lambda name: robot.getLightSensor(name))
-bumpers = sensorArray(ID.bumpers, timeStep, lambda name: robot.getTouchSensor(name))
-
-
-initiliaConnectivities = nns.connectivities.copy()
-#--------------------------------------------
-
-parameterChanger = ParameterChanger.fromConfig(nns.learningParameters, changingInfo)
-
-while not parameterChanger.hasEnded:
-
-    #initialize simulation
-    log = utils.SimulationLog(version, executionMode, runtime, modelPath)
+    # initialize simulation
+    log = utils.SimulationLog(opt.executionMode, opt.runtime)
     
     nSteps = 0
-    maxSteps = int((runtime * 60 * 1000) / timeStep)
+    maxSteps = int((opt.runtime * 60 * 1000) / epuck.timeStep)
 
-    logger.info(f"TIME:{runtime} min | STEP-TIME:{timeStep} ms => MAX-STEPS: {maxSteps}")
+    logger.info(f"TIME:{opt.runtime} min | STEP-TIME:{epuck.timeStep} ms => MAX-STEPS: {maxSteps}")
 
-    for k, m in motors.items():
+    for _, m in epuck.motors.items():
         m.device.setPosition(float('+inf'))
         m.device.setVelocity(0.0)
 
@@ -125,15 +71,12 @@ while not parameterChanger.hasEnded:
 
     # Main loop:
     # - perform simulation steps until Webots is stopping the controller
-    while robot.step(timeStep) != -1 and nSteps != maxSteps:
+    while epuck.robot.step(epuck.timeStep) != -1 and nSteps != maxSteps:
         
         # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
 
-        distances = []
-        bumps = []
-
-        for k, s in dss.items(): distances.append(s.device.getValue())
-        for k, s in bumpers.items(): bumps.append(s.device.getValue())
+        distances = [s.device.getValue() for _, s in epuck.dss.items()]
+        bumps = [s.device.getValue() for _, s in epuck.bumpers.items()]
         
         hasTouched = (1 in bumps)
         
@@ -144,55 +87,75 @@ while not parameterChanger.hasEnded:
         ann.processAnnState(distances, bumps)
 
         # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
+
         lv, rv = ann.calculateMotorSpeed()
-        motors['left'].device.setVelocity(lv)
-        motors['right'].device.setVelocity(rv)
+        epuck.motors['left'].device.setVelocity(lv)
+        epuck.motors['right'].device.setVelocity(rv)
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        if isTrainingModeActive: ann.updateWeights()
+        if opt.isTrainingModeActive: ann.updateWeights()
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-        coordinates = robot.getSelf().getField("translation").getSFVec3f()
+        coordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
         robotPosition = utils.Position.fromTuple(coordinates)
 
-        log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in nns.outputs[1].values(), robotPosition, nTouches))
+        log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in ann.getLayerOutput(1).values(), robotPosition, nTouches))
 
         nSteps += 1
 
         pass
 
+
+    if opt.isTrainingModeActive:
+        model = utils.TrainedModel(opt.version, ann.getNetworkParams(), ann.getConnectivities())
+        utils.saveTrainedModel(model, opt.modelPath)
+
+    log.setModel(model)
+    log.saveTo(opt.simulationLogPath)
+    
     logger.flush()
 
-    if isTrainingModeActive:
-        parameters = nns.learningParameters.toDict()
-        model = utils.TrainedModel(version, parameters, ann.getConnectivities())
-        utils.saveTrainedModel(model, modelPath)
+#-----------------------------------------------------------------------------------------------------
 
-    log.setRelativeModel(model)
-    log.saveTo(simulationLogPath)
+if opt.changingInfo is None:
+    simulation(opt, model)
+else:
 
-    print('All saved up!')
-
-    # Cleanup code and reset robot fields before next simulation.
-    motors['left'].device.setVelocity(0.0)
-    motors['right'].device.setVelocity(0.0)
     
-    robot.simulationResetPhysics()
+    initialPositionCoordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
+    initialOrientation = epuck.robot.getSelf().getField("rotation").getSFRotation()
 
-    robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
-    robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
+    initialConnectivities = copy.deepcopy(ann.getConnectivities())
 
-    if isTrainingModeActive:
-        nns.connectivities = initiliaConnectivities.copy()
+    parameterChanger = ParameterChanger.fromConfig(ann.getNetworkParams(), opt.changingInfo)
 
-    parameterChanger.updateParameter()
-    pass
+    while not parameterChanger.hasEnded:
+
+        simulation(opt, model)
+
+        # Cleanup code and reset robot fields before next simulation.
+        epuck.motors['left'].device.setVelocity(0.0)
+        epuck.motors['right'].device.setVelocity(0.0)
+        
+        epuck.robot.simulationResetPhysics()
+
+        epuck.robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
+        epuck.robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
+
+        if opt.isTrainingModeActive:
+            ann.setNetworkConnectivities(copy.deepcopy(initialConnectivities))
+
+        parameterChanger.updateParameter()
+
+        pass
 
 # Cleanup code.
-motors['left'].device.setVelocity(0.0)
-motors['right'].device.setVelocity(0.0)
+epuck.motors['left'].device.setVelocity(0.0)
+epuck.motors['right'].device.setVelocity(0.0)
 
-robot.simulationSetMode(robot.SIMULATION_MODE_PAUSE)
-robot.simulationReset()
+epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_PAUSE)
+epuck.robot.simulationReset()
+
+# --------------------------------------------------------------------------------------------------------------------------------------

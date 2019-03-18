@@ -1,6 +1,15 @@
-from libs.learningparameters import *
+from libs.learningparameters import LearningParameters
+
+def defaultChanging():
+    return {
+        'parameter':"",
+        'minVal': 0.0,
+        'maxVal': 0.0,
+        'changeStep': 0.0
+    }
 
 class ParameterChanger:
+    
     def __init__(self, parameters: LearningParameters, parameterToChange: str, minValue: float, maxValue: float, changeStep: float):
         self.parameters = parameters
         self.parameterToChange =  parameterToChange
@@ -8,13 +17,13 @@ class ParameterChanger:
         self.maxValue = maxValue * 100
         self.currentValue = self.minValue 
         self.changeStep = changeStep * 100
-        self.hasEnded = False
+        self._hasEnded = False
         self.parameters.setParameter(self.parameterToChange, self.currentValue / 100)
 
 
     def updateParameter(self):
         if self.currentValue == self.maxValue:
-            self.hasEnded = True
+            self._hasEnded = True
 
         if self.currentValue + self.changeStep < self.maxValue:
             self.currentValue += self.changeStep
@@ -24,12 +33,13 @@ class ParameterChanger:
 
     
     def hasEnded(self):
-        return self.hasEnded
+        return self._hasEnded
 
     @staticmethod
     def fromConfig(currentParameters:LearningParameters, changingInfo: dict):
         return ParameterChanger(currentParameters, 
-        changingInfo["parameter"], 
-        changingInfo["minVal"], 
-        changingInfo["maxVal"], 
-        changingInfo["changeStep"])
+            changingInfo["parameter"], 
+            changingInfo["minVal"], 
+            changingInfo["maxVal"], 
+            changingInfo["changeStep"]
+        )

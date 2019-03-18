@@ -1,5 +1,51 @@
-from enum import Enum
 import json
+from libs.log import logger
+
+class Options:
+
+    def __init__(self, opt:dict):
+        self.version = 2
+
+        if 'version' in opt:
+            self.version = opt['version']
+
+        self.isTrainingModeActive = True
+
+        self.executionMode = "train"
+        if 'mode' in opt:
+            self.executionMode = opt['mode']
+            if opt['mode'].lower() == 'test':
+                self.isTrainingModeActive = False
+                
+        self.runtime = -1 # minutes, -1 -> Infinite
+        if 'time' in opt:
+            self.runtime = opt['time']
+
+        self.modelPath = ""
+        if 'modelPath' in opt:
+            self.modelPath = opt['modelPath']
+
+        self.simulationLogPath = ""
+        if 'simulationLogPath' in opt:
+            self.simulationLogPath = opt['simulationLogPath']
+            
+        if 'logging' in opt:
+            logger.suppress(not opt['logging'])
+
+        self.changingInfo = None
+        if 'changingInfo' in opt:
+            self.changingInfo = opt['changingInfo']
+
+        self.parameters = {}
+        if 'parameters' in opt:
+            self.parameters = opt['parameters']
+    
+    @staticmethod
+    def fromArgv(argv:list):
+        return Options(parseArgs(argv))
+
+    def __str__(self):
+        return f'{self.__dict__}'
 
 def parseArgs(argv):
     args = {}
@@ -17,10 +63,3 @@ def parseArgs(argv):
             opt = json.load(config)
 
     return opt
-            
-class Options(Enum):
-    MODE = 'mode'
-    TIME = 'time'
-    VERSION = 'version'
-    MODEL_DIR = 'modelPath'
-    LOG_DIR = 'simulatioLogPath'
