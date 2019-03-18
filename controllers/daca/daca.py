@@ -98,13 +98,14 @@ dss = sensorArray(ID.distances, timeStep, lambda name: robot.getDistanceSensor(n
 lss = sensorArray(ID.lights, timeStep, lambda name: robot.getLightSensor(name))
 bumpers = sensorArray(ID.bumpers, timeStep, lambda name: robot.getTouchSensor(name))
 
+
+initiliaConnectivities = nns.connectivities.copy()
 #--------------------------------------------
 
 parameterChanger = ParameterChanger.fromConfig(nns.learningParameters, changingInfo)
 
 while not parameterChanger.hasEnded:
-    robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
-    robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
+
     #initialize simulation
     log = utils.SimulationLog(version, executionMode, runtime, modelPath)
     
@@ -173,11 +174,17 @@ while not parameterChanger.hasEnded:
 
     print('All saved up!')
 
-    # Cleanup code.
+    # Cleanup code and reset robot fields before next simulation.
     motors['left'].device.setVelocity(0.0)
     motors['right'].device.setVelocity(0.0)
     
     robot.simulationResetPhysics()
+
+    robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
+    robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
+
+    if isTrainingModeActive:
+        nns.connectivities = initiliaConnectivities.copy()
 
     parameterChanger.updateParameter()
     pass
