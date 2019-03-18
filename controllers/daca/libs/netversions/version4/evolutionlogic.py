@@ -9,31 +9,31 @@ def setNetworkParameters(params: dict or NetParameters):
     if isinstance(params, dict): 
 
         if 'learningRate' in params:
-            nns.LEARNING_RATE = params['learningRate']
+            nns.learningParameters.learningRate = params['learningRate']
         if 'forgetRate' in params:
-            nns.FORGET_RATE = params['forgetRate']
+            nns.learningParameters.forgetRate = params['forgetRate']
         if 'collisionThreshold' in params:
-            nns.COLLISION_THRESHOLD = params['collisionThreshold']
+            nns.learningParameters.collisionThreshold = params['collisionThreshold']
         if 'motorThreshold' in params:
-            nns.MOTOR_THRESHOLD = params['motorThreshold']
+            nns.learningParameters.motorThreshold = params['motorThreshold']
         if 'reverseThreshold' in params:
-            nns.REVERSE_THRESHOLD = params['reverseThreshold']
+            nns.learningParameters.reverseThreshold = params['reverseThreshold']
 
     elif isinstance(params, NetParameters):
 
-        nns.LEARNING_RATE = params.learning_rate
-        nns.FORGET_RATE = params.forget_rate
-        nns.COLLISION_THRESHOLD = params.collision_threshold
-        nns.MOTOR_THRESHOLD = params.motor_threshold
-        nns.REVERSE_THRESHOLD = params.reverse_threshold
+        nns.learningParameters.learningRate = params.learning_rate
+        nns.learningParameters.forgetRate = params.forget_rate
+        nns.learningParameters.collisionThreshold = params.collision_threshold
+        nns.learningParameters.motorThreshold = params.motor_threshold
+        nns.learningParameters.reverseThreshold = params.reverse_threshold
 
 def getNetworkParams() -> dict:
     return {
-        'learningRate':nns.LEARNING_RATE,
-        'forgetRate':nns.FORGET_RATE,
-        'collisionThreshold':nns.COLLISION_THRESHOLD,
-        'motorThreshold':nns.MOTOR_THRESHOLD,
-        'reverseThreshold':nns.REVERSE_THRESHOLD
+        'learningRate':nns.learningParameters.learningRate,
+        'forgetRate':nns.learningParameters.forgetRate,
+        'collisionThreshold':nns.learningParameters.collisionThreshold,
+        'motorThreshold':nns.learningParameters.motorThreshold,
+        'reverseThreshold':nns.learningParameters.reverseThreshold
     }
 
 def setNetworkConnectivities(conn:dict):
