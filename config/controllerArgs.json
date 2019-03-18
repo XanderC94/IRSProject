@@ -1,5 +1,10 @@
 {
-    "version": 2,
+    "version": 3,
+    "time": 60,
+    "mode": "train",
+    "logging": false,
+    "modelPath": "../../model/",
+    "simulationLogPath": "../../logs/",
     "parameters": {     
         "collisionThreshold": 0.65,
         "motorThreshold": 1,
@@ -7,9 +12,10 @@
         "learningRate": 0.05,
         "forgetRate": 0.8
     },
-    "time": 120,
-    "mode": "train",
-    "logging": false,
-    "modelPath": "../../model/scraps.json",
-    "simulationLogPath": "../../logs/"
+    "changingInfo": {
+        "parameter": "learningRate",
+        "minVal": 0.05,
+        "maxVal": 0.06,
+        "changeStep": 0.01 
+    }
 }

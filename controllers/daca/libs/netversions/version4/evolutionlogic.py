@@ -1,40 +1,19 @@
 import libs.annutils as annutils
-from libs.utils import NetParameters
+from libs.learningparameters import LearningParameters
 import libs.netversions.version4.neuralnetstructure as nns
 from libs.log import logger
 from libs.motorresponse import wheelVelocity
 
-def setNetworkParameters(params: dict or NetParameters):
+def setNetworkParameters(params: dict or LearningParameters):
 
     if isinstance(params, dict): 
+        nns.learningParameters = LearningParameters.fromtDict(params)
 
-        if 'learningRate' in params:
-            nns.LEARNING_RATE = params['learningRate']
-        if 'forgetRate' in params:
-            nns.FORGET_RATE = params['forgetRate']
-        if 'collisionThreshold' in params:
-            nns.COLLISION_THRESHOLD = params['collisionThreshold']
-        if 'motorThreshold' in params:
-            nns.MOTOR_THRESHOLD = params['motorThreshold']
-        if 'reverseThreshold' in params:
-            nns.REVERSE_THRESHOLD = params['reverseThreshold']
-
-    elif isinstance(params, NetParameters):
-
-        nns.LEARNING_RATE = params.learning_rate
-        nns.FORGET_RATE = params.forget_rate
-        nns.COLLISION_THRESHOLD = params.collision_threshold
-        nns.MOTOR_THRESHOLD = params.motor_threshold
-        nns.REVERSE_THRESHOLD = params.reverse_threshold
+    elif isinstance(params, LearningParameters):
+        nns.learningParameters = params
 
 def getNetworkParams() -> dict:
-    return {
-        'learningRate':nns.LEARNING_RATE,
-        'forgetRate':nns.FORGET_RATE,
-        'collisionThreshold':nns.COLLISION_THRESHOLD,
-        'motorThreshold':nns.MOTOR_THRESHOLD,
-        'reverseThreshold':nns.REVERSE_THRESHOLD
-    }
+    nns.learningParameters.toDict()
 
 def setNetworkConnectivities(conn:dict):
     nns.connectivities = conn

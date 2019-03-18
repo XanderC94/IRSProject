@@ -1,13 +1,10 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
+from libs.learningparameters import *
 
 # Learning Parameters #########################
 
-LEARNING_RATE = 0.05
-FORGET_RATE = 0.8
-COLLISION_THRESHOLD = 0.65
-MOTOR_THRESHOLD = 1
-REVERSE_THRESHOLD = 2
+learningParameters = LearningParameters(0.05, 0.8, 0.65, 1, 2)
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
@@ -69,9 +66,9 @@ compositionFunction = {
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer])
 activationFunction = {
     0: lambda h: annutils.ActivationFunction.exp_inv(h), 
-    1: lambda h: annutils.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: annutils.ActivationFunction.binary_threshold(h, REVERSE_THRESHOLD),
-    3: lambda h: annutils.ActivationFunction.linear_threshold(h, MOTOR_THRESHOLD) 
+    1: lambda h: annutils.ActivationFunction.binary_threshold(h, learningParameters.collisionThreshold),
+    2: lambda h: annutils.ActivationFunction.binary_threshold(h, learningParameters.reverseThreshold),
+    3: lambda h: annutils.ActivationFunction.linear_threshold(h, learningParameters.motorThreshold) 
 }
 
 # activationLevel[layer] as a -> output[layer] as o

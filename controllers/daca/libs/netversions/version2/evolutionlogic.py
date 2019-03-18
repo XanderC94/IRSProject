@@ -1,42 +1,20 @@
 import libs.annutils as annutils
-from libs.utils import NetParameters
-import libs.netversions.version2.neuralnetstructure as nns
+from libs.learningparameters import LearningParameters
 from libs.log import logger
 from libs.motorresponse import wheelVelocity
 
-def setNetworkParameters(params: dict or NetParameters):
+import libs.netversions.version2.neuralnetstructure as nns
+
+def setNetworkParameters(params: dict or LearningParameters):
 
     if isinstance(params, dict): 
-        
-        p = params['parameters'] if 'parameters' in params else params
+        nns.learningParameters = LearningParameters.fromtDict(params)
 
-        if 'learningRate' in p:
-            nns.LEARNING_RATE = p['learningRate']
-        if 'forgetRate' in p:
-            nns.FORGET_RATE = p['forgetRate']
-        if 'collisionThreshold' in p:
-            nns.COLLISION_THRESHOLD = p['collisionThreshold']
-        if 'motorThreshold' in p:
-            nns.MOTOR_THRESHOLD = p['motorThreshold']
-        if 'reverseThreshold' in p:
-            nns.REVERSE_THRESHOLD = p['reverseThreshold']
-
-    elif isinstance(params, NetParameters):
-
-        nns.LEARNING_RATE = params.learning_rate
-        nns.FORGET_RATE = params.forget_rate
-        nns.COLLISION_THRESHOLD = params.collision_threshold
-        nns.MOTOR_THRESHOLD = params.motor_threshold
-        nns.REVERSE_THRESHOLD = params.reverse_threshold
+    elif isinstance(params, LearningParameters):
+        nns.learningParameters = params
 
 def getNetworkParams() -> dict:
-    return {
-        'learningRate':nns.LEARNING_RATE,
-        'forgetRate':nns.FORGET_RATE,
-        'collisionThreshold':nns.COLLISION_THRESHOLD,
-        'motorThreshold':nns.MOTOR_THRESHOLD,
-        'reverseThreshold':nns.REVERSE_THRESHOLD
-    }
+    nns.learningParameters.toDict()
 
 def setNetworkConnectivities(conn:dict):
     nns.connectivities = conn
@@ -157,7 +135,7 @@ def updateWeights():
     proxOut = nns.outputs[0]
     collOut = nns.outputs[1]
     
-    updatedWeights = annutils.updateSparseConnectivities(nns.connectivities[1], collOut, proxOut, nns.LEARNING_RATE, nns.FORGET_RATE)
+    updatedWeights = annutils.updateSparseConnectivities(nns.connectivities[1], collOut, proxOut, nns.learningParameters.learningRate, nns.learningParameters.forgetRate)
     nns.connectivities.update({1: updatedWeights})
     
 def calculateMotorSpeed():

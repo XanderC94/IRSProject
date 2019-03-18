@@ -14,6 +14,8 @@ from libs.motorresponse import wheelVelocity
 import libs.motor as motor
 import libs.utils as utils
 from libs.log import logger
+from libs.learningparameters import LearningParameters
+from libs.parameterchangingstrategies import ParameterChanger
 
 opt = parseArgs(sys.argv)
 
@@ -69,26 +71,27 @@ logger.info(f"params:{ann.getNetworkParams()}")
 if 'logging' in opt:
     logger.suppress(not opt['logging'])
 
-# Setup ------------------------------------
+if 'parameters' in opt:
+    nns.learningParameters = LearningParameters.fromDict(opt['parameters'])
 
-log = utils.SimulationLog(version, executionMode, modelPath, runtime)
+changingInfo = {}
+if 'changingInfo' in opt:
+    changingInfo = opt['changingInfo']
+
+# Setup ------------------------------------
 
 # create the Robot instance.
 # robot = Robot()
 # Supervisor extends Robot but has access to all the world info. 
 # Useful for automating the simulation.
 robot = Supervisor() 
+initialPositionCoordinates = robot.getSelf().getField("translation").getSFVec3f()
+initialOrientation = robot.getSelf().getField("rotation").getSFRotation()
 
 # get the time step (ms) of the current world.
 timeStep = int(robot.getBasicTimeStep())
-nSteps = 0
-maxSteps = int((runtime * 60 * 1000) / timeStep)
 
-logger.info(f"TIME:{runtime} min | STEP-TIME:{timeStep} ms => MAX-STEPS: {maxSteps}")
-
-# You should insert a getDevice-like function in order to get the
-# instance of a device of the robot.
-
+#Retrieve device references
 leds = sensorArray(ID.leds, timeStep, lambda name: robot.getLED(name), enable = False)
 motors = sensorArray(ID.motors, timeStep, lambda name: robot.getMotor(name), enable = False)
 
@@ -96,66 +99,98 @@ dss = sensorArray(ID.distances, timeStep, lambda name: robot.getDistanceSensor(n
 lss = sensorArray(ID.lights, timeStep, lambda name: robot.getLightSensor(name))
 bumpers = sensorArray(ID.bumpers, timeStep, lambda name: robot.getTouchSensor(name))
 
-for k, m in motors.items():
-    m.device.setPosition(float('+inf'))
-    m.device.setVelocity(0.0)
 
-#-------------------------------------------------
+initiliaConnectivities = nns.connectivities.copy()
+#--------------------------------------------
 
-nTouches = 0
+parameterChanger = ParameterChanger.fromConfig(nns.learningParameters, changingInfo)
 
-# Main loop:
-# - perform simulation steps until Webots is stopping the controller
-while robot.step(timeStep) != -1 and nSteps != maxSteps:
+while not parameterChanger.hasEnded:
+
+    #initialize simulation
+    log = utils.SimulationLog(version, executionMode, runtime, modelPath)
     
-    # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
+    nSteps = 0
+    maxSteps = int((runtime * 60 * 1000) / timeStep)
 
-    distances = []
-    bumps = []
+    logger.info(f"TIME:{runtime} min | STEP-TIME:{timeStep} ms => MAX-STEPS: {maxSteps}")
 
-    for k, s in dss.items(): distances.append(s.device.getValue())
-    for k, s in bumpers.items(): bumps.append(s.device.getValue())
+    for k, m in motors.items():
+        m.device.setPosition(float('+inf'))
+        m.device.setVelocity(0.0)
+
+    #-------------------------------------------------
+
+    nTouches = 0
+
+    # Main loop:
+    # - perform simulation steps until Webots is stopping the controller
+    while robot.step(timeStep) != -1 and nSteps != maxSteps:
+        
+        # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
+
+        distances = []
+        bumps = []
+
+        for k, s in dss.items(): distances.append(s.device.getValue())
+        for k, s in bumpers.items(): bumps.append(s.device.getValue())
+        
+        hasTouched = (1 in bumps)
+        
+        if hasTouched: nTouches += 1
+
+        # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        ann.processAnnState(distances, bumps)
+
+        # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
+        lv, rv = ann.calculateMotorSpeed()
+        motors['left'].device.setVelocity(lv)
+        motors['right'].device.setVelocity(rv)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        if isTrainingModeActive: ann.updateWeights()
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    hasTouched = (1 in bumps)
+        coordinates = robot.getSelf().getField("translation").getSFVec3f()
+        robotPosition = utils.Position.fromTuple(coordinates)
+
+        log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in nns.outputs[1].values(), robotPosition, nTouches))
+
+        nSteps += 1
+
+        pass
+
+    logger.flush()
+
+    if isTrainingModeActive:
+        parameters = nns.learningParameters.toDict()
+        model = utils.TrainedModel(version, parameters, ann.getConnectivities())
+        utils.saveTrainedModel(model, modelPath)
+
+    log.setRelativeModel(model)
+    log.saveTo(simulationLogPath)
+
+    print('All saved up!')
+
+    # Cleanup code and reset robot fields before next simulation.
+    motors['left'].device.setVelocity(0.0)
+    motors['right'].device.setVelocity(0.0)
     
-    if hasTouched: nTouches += 1
+    robot.simulationResetPhysics()
 
-    # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    ann.processAnnState(distances, bumps)
+    robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
+    robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
 
-    # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
-    lv, rv = ann.calculateMotorSpeed()
-    motors['left'].device.setVelocity(lv)
-    motors['right'].device.setVelocity(rv)
+    if isTrainingModeActive:
+        nns.connectivities = initiliaConnectivities.copy()
 
-    # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    if isTrainingModeActive: ann.updateWeights()
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   
-    coordinates = robot.getSelf().getField("translation").getSFVec3f()
-    robotPosition = utils.Position.fromTuple(coordinates)
-
-    log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in nns.outputs[1].values(), robotPosition, nTouches))
-
-    nSteps += 1
-
+    parameterChanger.updateParameter()
     pass
 
-logger.flush()
-
-if isTrainingModeActive:
-    parameters = utils.NetParameters.fromDict(ann.getNetworkParams())
-    model = utils.TrainedModel(version, parameters, ann.getConnectivities())
-    utils.saveTrainedModel(model, modelPath)
-
-log.saveTo(simulationLogPath)
-
-print('All saved up!')
-
-# Enter here exit cleanup code.
+# Cleanup code.
 motors['left'].device.setVelocity(0.0)
 motors['right'].device.setVelocity(0.0)
 

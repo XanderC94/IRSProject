@@ -1,5 +1,6 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as ann
+from libs.learningparameters import *
 
 """
 COLLISION_THRESHOLD = 1.0 #float(opt['coll-ths'])
@@ -7,15 +8,7 @@ LEARNING_RATE = 0.5 #float(opt['lrate'])
 FORGET_RATE = 0.3 #float(opt['frate'])
 """
 
-# Reference paper value #########################
-COLLISION_THRESHOLD = 0.5 # float(opt['coll-ths'])
-LEARNING_RATE = 0.05 # float(opt['lrate'])
-FORGET_RATE = 0.5 # float(opt['frate'])
-
-#################################################
-
-MOTOR_THRESHOLD = 1;
-REVERSE_THRESHOLD = 2;
+learningParameters = LearningParameters(0.05, 0.5, 0.5, 1, 2)
 
 """
 # NETWORK STRUCTURE - Version 1 => 2 neurons in the motor layer ~~~~~~~~~
@@ -83,9 +76,9 @@ compositionFunction = {
 # compositionFunction[layer] as h -> activationLevel[layer] as a = g(h[layer])
 activationFunction = {
     0: lambda h: ann.ActivationFunction.exp_inv(h), 
-    1: lambda h: ann.ActivationFunction.binary_threshold(h, COLLISION_THRESHOLD),
-    2: lambda h: ann.ActivationFunction.binary_threshold(h, REVERSE_THRESHOLD),
-    3: lambda h: ann.ActivationFunction.linear_threshold(h, MOTOR_THRESHOLD) 
+    1: lambda h: ann.ActivationFunction.binary_threshold(h, learningParameters.collisionThreshold),
+    2: lambda h: ann.ActivationFunction.binary_threshold(h, learningParameters.reverseThreshold),
+    3: lambda h: ann.ActivationFunction.linear_threshold(h, learningParameters.motorThreshold) 
 }
 
 # activationLevel[layer] as a -> output[layer] as o
