@@ -1,5 +1,6 @@
 import json, datetime, logging
 from  libs.learningparameters  import * 
+from pathlib import Path
 
 
 class TrainedModel:
@@ -95,7 +96,9 @@ class SimulationLog:
         self.relative_model = relative_model
 
     def saveTo(self, directoryPath: str) -> str:
-        file_name = f"{directoryPath}SimLog_AnnV{self.version}-{self.mode}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g.json"
+
+        model_name = Path(self.model).with_suffix('').name
+        file_name = f"{directoryPath}SimLog_v{self.version}-{self.mode}-{model_name}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g.json"
         print(file_name)
         with open(file_name, 'w') as outfile:
             json.dump(self.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
