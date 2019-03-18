@@ -2,21 +2,29 @@ from enum import Enum
 
 
 class LearningParameters:
-    COLLISION_THRESHOLD = "collision_threshold"
-    LEARNING_RATE = "learning_rate"
-    FORGET_RATE = "forget_rate"
-    
-    def __init__(self, collision_threshold, learning_rate, forget_rate):
-        self.collision_threshold = collision_threshold
-        self.learning_rate = learning_rate
-        self.forget_rate = forget_rate
+    LEARNING_RATE = "learningRate"
+    FORGET_RATE = "forgetRate"
+    COLLISION_THRESHOLD = "collisionThreshold"
+    MOTOR_THRESHOLD = "motorThreshold"
+    REVERSE_THRESHOLD = "reverseThreshold"
+
+    def __init__(self, learningRate, forgetRate, collisionThreshold, motorThreshold, reverseThreshold):
+        self.learningRate = learningRate
+        self.forgetRate = forgetRate
+        self.collisionThreshold = collisionThreshold
+        self.motorThreshold = motorThreshold
+        self.reverseThreshold = reverseThreshold
     
     def setParameter(self, parameter: str, value: float):
-        if parameter ==  LearningParameters.COLLISION_THRESHOLD:
-            self.collision_threshold = value
-        elif parameter == LearningParameters.LEARNING_RATE:
-            self.learning_rate = value
+        if parameter == LearningParameters.LEARNING_RATE:
+            self.learningRate = value
         elif parameter == LearningParameters.FORGET_RATE:
-            self.forget_rate = value
+            self.forgetRate = value
+        elif parameter ==  LearningParameters.COLLISION_THRESHOLD:
+            self.collisionThreshold = value
+        elif parameter == LearningParameters.MOTOR_THRESHOLD:
+            self.motorThreshold = value
+        elif parameter == LearningParameters.REVERSE_THRESHOLD:
+            self.reverseThreshold = value
             pass
 

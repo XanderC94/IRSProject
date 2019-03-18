@@ -34,10 +34,11 @@ class TestStringMethods(unittest.TestCase):
     
     def test_sparseInputComposition_for_reverse(self):
         o = [1,0,1]
-        hf = lambda i, plOut, wij: weightedSum(wij, plOut)
+        hf = lambda sIn, plOut, w: annutils.weightedSum(w, plOut)
         connectivities = sparselyConnected([0], [[0, 2]], gen = lambda:1.0)
         result = sparseInputComposition([], o, connectivities, hf)
         self.assertEqual(result, [2.0])
+        
 
     def test_saveAndLoadTrainedModel(self):
         parameters = NetParameters(0.65, 0.08, 0.8, 1, 2)
@@ -58,39 +59,47 @@ class TestStringMethods(unittest.TestCase):
 
         test_model = TrainedModel("TestExample", parameters, connectivities)
         print(f"TEST MODEL: {str(test_model)}")
-        model_name = saveTrainedModel(test_model, f"{test_model.version_name}.json")
-        loaded_model = loadTrainedModel(f"{test_model.version_name}.json")
+        model_name = saveTrainedModel(test_model, f"{test_model.version}.json")
+        loaded_model = loadTrainedModel(f"{test_model.version}.json")
         print(f"LOADED MODEL: {str(loaded_model)}")        
         self.assertEqual(str(loaded_model), str(test_model))
 
     def test_setParameter(self):
-        parameters = LearningParameters(5.0, 6.0, 7.0)
+        parameters = LearningParameters(5.0, 6.0, 7.0, 8.0, 9.0)
         value = 1.0
-        parameters.setParameter("collision_threshold", value)
-        self.assertEqual(value, parameters.collision_threshold)
+        parameters.setParameter("collisionThreshold", value)
+        self.assertEqual(value, parameters.collisionThreshold)
 
         value = 2.0
-        parameters.setParameter("learning_rate", value)
-        self.assertEqual(value, parameters.learning_rate)
+        parameters.setParameter("learningRate", value)
+        self.assertEqual(value, parameters.learningRate)
 
         value = 3.0
-        parameters.setParameter("forget_rate", value)
-        self.assertEqual(value, parameters.forget_rate)
+        parameters.setParameter("forgetRate", value)
+        self.assertEqual(value, parameters.forgetRate)
+
+        value = 4.0
+        parameters.setParameter("motorThreshold", value)
+        self.assertEqual(value, parameters.motorThreshold)
+
+        value = 5.0
+        parameters.setParameter("reverseThreshold", value)
+        self.assertEqual(value, parameters.reverseThreshold)
 
     def test_parameterChanger(self):
-        parameters = LearningParameters(3.0, 4.0, 5.0)
+        parameters = LearningParameters(3.0, 4.0, 5.0, 6.0, 7.0)
         minVal = 3.0
         maxVal = 4.0
         step = 0.1
-        changer = ParameterChanger(parameters, "collision_threshold", minVal, maxVal, step)
+        changer = ParameterChanger(parameters, "collisionThreshold", minVal, maxVal, step)
         current_val = minVal
         while not changer.hasEnded:
             changer.updateParameter()
             current_val = current_val + step if not changer.hasEnded else maxVal 
-            self.assertEqual(current_val,parameters.collision_threshold)
+            self.assertEqual(current_val,parameters.collisionThreshold)
             pass
         changer.updateParameter()
-        self.assertEqual(maxVal, parameters.collision_threshold)
+        self.assertEqual(maxVal, parameters.collisionThreshold)
         
 
 

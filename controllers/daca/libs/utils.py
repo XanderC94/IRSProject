@@ -3,29 +3,29 @@ import json, datetime, logging
 class NetParameters:
     
     def __init__(self, 
-    collision_threshold: float,  
-    learning_rate: float,
-    forget_rate: float,
-    motor_threshold: int,
-    reverse_threshold: int):
-        self.collision_threshold = collision_threshold
-        self.learning_rate = learning_rate
-        self.forget_rate = forget_rate
-        self.motor_threshold = motor_threshold
-        self.reverse_threshold = reverse_threshold
+    learningRate: float,
+    forgetRate: float,
+    collisionThreshold: float,  
+    motorThreshold: int,
+    reverseThreshold: int):
+        self.learningRate = learningRate
+        self.forgetRate = forgetRate
+        self.collisionThreshold = collisionThreshold
+        self.motorThreshold = motorThreshold
+        self.reverseThreshold = reverseThreshold
 
     def __str__(self):
-        return (f" collision_threshold: {self.collision_threshold}, learning_rate: {self.learning_rate}, forget_rate: {self.forget_rate}, motor_threshold:  {self.motor_threshold}, reverse_threshold: {self.reverse_threshold}")
+        return (f"learningRate: {self.learningRate}, forgetRate: {self.forgetRate}, collisionThreshold: {self.collisionThreshold}, motorThreshold:  {self.motorThreshold}, reverseThreshold: {self.reverseThreshold}")
 
     @staticmethod
     def fromDict(params: dict):
 
         return NetParameters(
-            learning_rate = params['learningRate'],
-            forget_rate = params['forgetRate'],
-            collision_threshold = params['collisionThreshold'],
-            motor_threshold = params['motorThreshold'],
-            reverse_threshold = params['reverseThreshold']
+            learningRate = params['learningRate'],
+            forgetRate = params['forgetRate'],
+            collisionThreshold = params['collisionThreshold'],
+            motorThreshold = params['motorThreshold'],
+            reverseThreshold = params['reverseThreshold']
         )
 
 class TrainedModel:
@@ -36,6 +36,10 @@ class TrainedModel:
 
     def __str__(self):
         return "Model version name: " + str(self.version) + ", Parameters: " + str(self.parameters) + ", Connectivities: " + str(self.connectivities)
+    
+    @classmethod
+    def emptyModel(cls):
+        return TrainedModel("", NetParameters(0,0,0,0,0), {})
 
 
 def saveTrainedModel(model: TrainedModel, path: str):
@@ -61,11 +65,11 @@ def loadTrainedModel(path: str) -> TrainedModel:
     with open(path, 'r') as json_data:
         loaded_json = json.load(json_data)
 
-    loaded_parameters = NetParameters(loaded_json["parameters"]["collision_threshold"],
-    loaded_json["parameters"]["learning_rate"],
-    loaded_json["parameters"]["forget_rate"],
-    loaded_json["parameters"]["motor_threshold"],
-    loaded_json["parameters"]["reverse_threshold"])
+    loaded_parameters = NetParameters(loaded_json["parameters"]["learningRate"],
+    loaded_json["parameters"]["forgetRate"],
+    loaded_json["parameters"]["collisionThreshold"],
+    loaded_json["parameters"]["motorThreshold"],
+    loaded_json["parameters"]["reverseThreshold"])
     
     connectivities = recursiveExtractDictWithIntKey(loaded_json["connectivities"])
     return TrainedModel(loaded_json["version"], loaded_parameters, connectivities)
@@ -83,7 +87,12 @@ class Position:
 
 class LogEntry:
 
-    def __init__(self, step_number: int, collision: bool, activation : bool, position: Position, nTouches: int):
+    def __init__(self, 
+    step_number: int, 
+    collision: bool,
+    activation : bool, 
+    position: Position, 
+    nTouches: int):
 
         self.step_number = step_number
         self.collision = collision
@@ -93,7 +102,7 @@ class LogEntry:
 
 class SimulationLog:
     
-    def __init__(self, version: int, log: list = [], relative_model: TrainedModel = TrainedModel("", NetParameters(0,0,0,0,0), {}),  mode:str,  time: int):
+    def __init__(self, version: int, mode:str, time: int, log: list = [], relative_model: TrainedModel = TrainedModel.emptyModel()):
         self.version = version
         self.mode = mode
         self.time = time
