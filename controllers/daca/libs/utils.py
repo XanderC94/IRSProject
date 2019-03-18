@@ -1,6 +1,7 @@
 import json, datetime, logging
 from  libs.learningparameters  import * 
 
+
 class TrainedModel:
     def __init__(self, version: int, parameters: LearningParameters, connectivities: dict):
         self.version = version
@@ -14,11 +15,16 @@ class TrainedModel:
     def emptyModel(cls):
         return TrainedModel("", LearningParameters(0,0,0,0,0), {})
 
+def generateFileName(model: TrainedModel):
+    return f"Model_AnnV{model.version}-{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}g"
 
-def saveTrainedModel(model: TrainedModel, path: str):
-   
-    with open(path, 'w') as outfile:
+def writeModelOnFile(model: TrainedModel, file_path: str):
+    with open(file_path, 'w') as outfile:
         json.dump(model.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
+
+def saveTrainedModel(model: TrainedModel, directoryPath: str):
+    file_path = f"{directoryPath}{generateFileName(model)}.json"
+    writeModelOnFile(model, file_path)
 
 
 def recursiveExtractDictWithIntKey(json)-> dict:

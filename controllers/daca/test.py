@@ -59,7 +59,7 @@ class TestStringMethods(unittest.TestCase):
 
         test_model = TrainedModel("TestExample", parameters, connectivities)
         print(f"TEST MODEL: {str(test_model)}")
-        model_name = saveTrainedModel(test_model, f"{test_model.version}.json")
+        writeModelOnFile(test_model, f"{test_model.version}.json")
         loaded_model = loadTrainedModel(f"{test_model.version}.json")
         print(f"LOADED MODEL: {str(loaded_model)}")        
         self.assertEqual(str(loaded_model), str(test_model))
@@ -96,6 +96,7 @@ class TestStringMethods(unittest.TestCase):
         while not changer.hasEnded:
             changer.updateParameter()
             current_val = current_val + step if not changer.hasEnded else maxVal 
+            print(current_val)
             self.assertEqual(current_val,parameters.collisionThreshold)
             pass
         changer.updateParameter()

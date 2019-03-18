@@ -5,23 +5,7 @@ import sys
 from libs.argutils import parseArgs
 # Learning Parameters #########################
 
-opt = parseArgs(sys.argv)
-
 learningParameters = LearningParameters(0.05, 0.8, 0.65, 1, 2)
-
-
-
-if 'parameters' in opt:
-    if 'learningRate' in opt['parameters']:
-        learningParameters.learningRate = opt['parameters']['learningRate']
-    if 'forgetRate' in opt:
-        learningParameters.forgetRate = opt['parameters']['forgetRate']
-    if 'collisionThreshold' in opt:
-        learningParameters.collisionThreshold = opt['parameters']['collisionThreshold']
-    if 'motorThreshold' in opt:
-        learningParameters.motorThreshold = opt['parameters']['motorThreshold']
-    if 'reverseThreshold' in opt:
-        learningParameters.reverseThreshold = opt['parameters']['reverseThreshold']
 
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected

@@ -22,3 +22,11 @@ class ParameterChanger:
     
     def hasEnded(self):
         return self.hasEnded
+
+    @staticmethod
+    def fromConfig(currentParameters:LearningParameters, changingInfo: dict):
+        return ParameterChanger(currentParameters, 
+        changingInfo["parameter"], 
+        changingInfo["minVal"], 
+        changingInfo["maxVal"], 
+        changingInfo["changeStep"])
