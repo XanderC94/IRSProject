@@ -18,6 +18,7 @@ from libs.log import logger
 opt = parseArgs(sys.argv)
 
 logger.info(opt)
+print(opt)
 
 version = ""
 

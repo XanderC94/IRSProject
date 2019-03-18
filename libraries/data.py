@@ -29,6 +29,7 @@ def extractData(path: Path):
     seq = 0
     act = False
     coll = False
+
     for e in data['log']:
         if act != e['activation'] or coll != e['collision']:
             seq += 1
@@ -38,6 +39,46 @@ def extractData(path: Path):
         e['nEvent'] = seq
 
     df = panda.DataFrame(data['log']).rename(columns = {'step_number':'nStep'})
+
+    # NOTE #3:
+    # Since many robots that run circularly on themselves have higher chances 
+    # during the test phase to achieve great avoidances score 
+    # and very low collision scores 
+    # there is the need of a mean to sieze such behaviour.
+    #
+    # The main idea here is that those robots with circular behavior
+    # explore less the area, moving around in the same area.
+    # Since they move over and over the same positions,
+    # the variances and stddev of such values should be lower
+    # than the one of the robots with a more 'audace' behaviour.
+    #
+    # In order to maximize such value and don't be swayed away by negative coordinates
+    # every position is translated by a vector of magnidute || max(abs(x)), max(abs(z)) ||
+
+    df['xc'] = df['position'].apply(lambda p: p['X'])
+    df['zc'] = df['position'].apply(lambda p: p['Z'])
+
+    maxx = df['xc'].abs().max()
+    maxz = df['zc'].abs().max()
+
+    df['xc'] += maxx
+    # df['yc'] += df['yc'].max()
+    df['zc'] += maxz
+    
+    # print(f'MAX(x):{maxx}, MAX(z):{maxz}')
+
+    df.drop(['position'], axis=1)
+
+    route = df[['xc', 'zc']]
+
+    dx = route['xc'].std(axis=0)
+    # dy = route['yc'].std(axis=0)
+    dz = route['zc'].std(axis=0)
+    
+    # cxz = route.cov()
+
+    # print(f'STD(x):{dx}, STD(z):{dz}')
+    # print(f'COV(x, z):{cxz}')
 
     # NOTE #1: 
     # Can we say that continous activations may refere to a single obstacle avoidance/collision?
@@ -104,6 +145,12 @@ def extractData(path: Path):
     )
     
     # Dipping some useful data
+
+    stats['std(x)'] = dx
+    stats['std(z)'] = dz
+    stats['max(x)'] = maxx
+    stats['max(z)'] = maxz
+
     stats['LR'] = model['parameters']['learning_rate']
     stats['FR'] = model['parameters']['forget_rate']
     stats['CT'] = model['parameters']['collision_threshold']
@@ -121,6 +168,6 @@ def extractData(path: Path):
 
     stats.sort_values(['event']).to_csv(savePath, index = False)
 
-    print(f'Saved to: {savePath}')
+    print(f'Saved to: {savePath}', end='\n\n')
 
     return (savePath, data['mode'], data['version'])

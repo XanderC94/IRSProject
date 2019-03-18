@@ -2,8 +2,7 @@ import math, json, sys, copy, os, csv
 
 import matplotlib.pyplot as plotter
 from mpl_toolkits.mplot3d import axes3d
-from matplotlib import cm
-
+from figure import figure
 from data import extractData
 
 from pathlib import Path
@@ -63,71 +62,69 @@ if len(sys.argv) > 1:
     df = df.drop(['activation', 'collision'], axis = 1)
     df = df[df['event'] != 'Going By']
 
-    print(df[filterCollision(df)].sort_values(['version', 'mode', '%events']))
-    print(df[filterAvoidance(df)].sort_values(['version', 'mode', '%events'], ascending = False))
-
-    exit(0)
-
-    fig = plotter.figure() 
-    axlr = fig.add_subplot(1,1,1, projection='3d')
-    
-    xlr = df[filterModeAndVersion(df, 'train', 2) & filterAvoidance(df)]['LR'].values
-    yfr = df[filterModeAndVersion(df, 'train', 2) & filterAvoidance(df)]['FR'].values
-
-    zAvEvents = df[filterModeAndVersion(df, 'train', 2) & filterAvoidance(df)]['%events'].values
-    zCollEvents = df[filterModeAndVersion(df, 'train', 2) & filterCollision(df)]['%events'].values
-
-    xlr, yfr, zAvEvents = np.meshgrid(xlr, yfr, zAvEvents)
-
-    # Avoidance events evolution by LearningRate variation
-    axlr.plot_surface(
-        xlr,
-        yfr, 
-        zAvEvents,
-        label='avoidance events', 
-        linewidth=0.1
+    print(df[filterCollision(df)].sort_values(
+            ['version', 'mode', 'std(x)', 'std(z)', '%events'],
+            ascending = [True, True, False, False, True]
+        )
+        
     )
 
-    xlr, yfr, zCollEvents = np.meshgrid(xlr, yfr, zAvEvents)
-
-    # Collision events evolution by LearningRate variation
-    axlr.plot_surface(
-        xlr,
-        yfr, 
-        zCollEvents,
-        label='collision events', 
-        linewidth=0.1
+    print(df[filterAvoidance(df)].sort_values(
+            ['version', 'mode', 'std(x)', 'std(z)', '%events'], 
+            ascending = [True, True, False, False, False]
+        )
     )
 
-    axlr.set_xlim(0, 1.1)
-    axlr.set_ylim(0, 1.1)
-    axlr.set_zlim(0, 1.1)
+    # ------------------------------------------------------------------
 
-    cset = axlr.contourf(xlr, yfr, zAvEvents, zdir='x', offset=0, cmap=cm.coolwarm)
-    cset = axlr.contourf(xlr, yfr, zAvEvents, zdir='y', offset=0, cmap=cm.coolwarm)
-    cset = axlr.contourf(xlr, yfr, zAvEvents, zdir='z', offset=0, cmap=cm.coolwarm)
+    plot_columns = ['LR','FR', 'CT','%events']
 
-    # zAvSteps = df[filterModeAndVersion(df, 'train', 2) & filterAvoidance(df)]['%steps'].values
-    # zCollSteps = df[filterModeAndVersion(df, 'train', 2) & filterCollision(df)]['%steps'].values
+    mode = 'train'
+
+    xlra, yfra, cta, zea = (
+        df[filterModeAndVersion(df, mode, 2) & filterAvoidance(df)][plot_columns].T.values
+    )
+
+    xlrc, yfrc, ctc, zec = (
+        df[filterModeAndVersion(df, mode, 2) & filterCollision(df)][plot_columns].T.values
+    )
     
-    # # Avoidance step evolution by LearningRate variation
-    # axlr.plot_surface(
-    #     xlr,
-    #     yfr, 
-    #     zAvSteps,
-    #     label='avoidance steps', 
-    #     linewidth=0.1
-    # )
+    trainPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
+    trainPlot.suptitle('Train Data - (LR,FR,Score), CT')
+    trainPlot.canvas.set_window_title(mode)    
 
-    # # Collision steps evolution by LearningRate variation
-    # axlr.plot_surface(
-    #     xlr,
-    #     yfr, 
-    #     zCollSteps,
-    #     label='collision steps', 
-    #     linewidth=0.1
-    # )
+    plotter.subplots_adjust(
+        left=0.0,
+        right=1.0,
+        bottom=0.0,
+        top=1.0,
+        wspace= 0.0,
+        hspace=0.0
+    )
 
+    # ------------------------------------------------------------------
+    
+    mode = 'test'
+
+    xlra, yfra, cta, zea = (
+        df[filterModeAndVersion(df, mode, 2) & filterAvoidance(df)][plot_columns].T.values
+    )
+
+    xlrc, yfrc, ctc, zec = (
+        df[filterModeAndVersion(df, mode, 2) & filterCollision(df)][plot_columns].T.values
+    )
+
+    testPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
+    testPlot.suptitle('Test Data - (LR,FR,Score), CT')
+    testPlot.canvas.set_window_title(mode)
+    plotter.subplots_adjust(
+        left=0.0,
+        right=1.0,
+        bottom=0.0,
+        top=1.0,
+        wspace= 0.0,
+        hspace=0.0
+    )
 
     plotter.legend()
     plotter.show()
