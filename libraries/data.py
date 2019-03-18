@@ -18,13 +18,11 @@ def eventMatcher(x) -> str:
 def extractData(path: Path):
 
     data = {}
-    model = {}
 
     with open(path) as dataFile:
         data = json.load(dataFile)
     
-    with open(data['model']) as modelFile:
-        model = json.load(modelFile)
+    model = data['model']
 
     seq = 0
     act = False
@@ -151,11 +149,11 @@ def extractData(path: Path):
     stats['max(x)'] = maxx
     stats['max(z)'] = maxz
 
-    stats['LR'] = model['parameters']['learning_rate']
-    stats['FR'] = model['parameters']['forget_rate']
-    stats['CT'] = model['parameters']['collision_threshold']
-    stats['RT'] = model['parameters']['reverse_threshold']
-    stats['MT'] = model['parameters']['motor_threshold']
+    stats['LR'] = model['parameters']['learningRate']
+    stats['FR'] = model['parameters']['forgetRate']
+    stats['CT'] = model['parameters']['collisionThreshold']
+    stats['RT'] = model['parameters']['reverseThreshold']
+    stats['MT'] = model['parameters']['motorThreshold']
 
     stats['origin'] = path.name
     
@@ -170,4 +168,4 @@ def extractData(path: Path):
 
     print(f'Saved to: {savePath}', end='\n\n')
 
-    return (savePath, data['mode'], data['version'])
+    return (savePath, data['mode'], model['version'])
