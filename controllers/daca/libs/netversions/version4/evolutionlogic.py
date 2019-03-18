@@ -1,40 +1,19 @@
 import libs.annutils as annutils
-from libs.utils import NetParameters
+from libs.learningparameters import LearningParameters
 import libs.netversions.version4.neuralnetstructure as nns
 from libs.log import logger
 from libs.motorresponse import wheelVelocity
 
-def setNetworkParameters(params: dict or NetParameters):
+def setNetworkParameters(params: dict or LearningParameters):
 
     if isinstance(params, dict): 
+        nns.learningParameters = LearningParameters.fromtDict(params)
 
-        if 'learningRate' in params:
-            nns.learningParameters.learningRate = params['learningRate']
-        if 'forgetRate' in params:
-            nns.learningParameters.forgetRate = params['forgetRate']
-        if 'collisionThreshold' in params:
-            nns.learningParameters.collisionThreshold = params['collisionThreshold']
-        if 'motorThreshold' in params:
-            nns.learningParameters.motorThreshold = params['motorThreshold']
-        if 'reverseThreshold' in params:
-            nns.learningParameters.reverseThreshold = params['reverseThreshold']
-
-    elif isinstance(params, NetParameters):
-
-        nns.learningParameters.learningRate = params.learning_rate
-        nns.learningParameters.forgetRate = params.forget_rate
-        nns.learningParameters.collisionThreshold = params.collision_threshold
-        nns.learningParameters.motorThreshold = params.motor_threshold
-        nns.learningParameters.reverseThreshold = params.reverse_threshold
+    elif isinstance(params, LearningParameters):
+        nns.learningParameters = params
 
 def getNetworkParams() -> dict:
-    return {
-        'learningRate':nns.learningParameters.learningRate,
-        'forgetRate':nns.learningParameters.forgetRate,
-        'collisionThreshold':nns.learningParameters.collisionThreshold,
-        'motorThreshold':nns.learningParameters.motorThreshold,
-        'reverseThreshold':nns.learningParameters.reverseThreshold
-    }
+    nns.learningParameters.toDict()
 
 def setNetworkConnectivities(conn:dict):
     nns.connectivities = conn
