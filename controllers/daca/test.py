@@ -34,14 +34,14 @@ class TestStringMethods(unittest.TestCase):
     
     def test_sparseInputComposition_for_reverse(self):
         o = [1,0,1]
-        hf = lambda sIn, plOut, w: annutils.weightedSum(w, plOut)
+        hf = lambda sIn, plOut, w: weightedSum(w, plOut)
         connectivities = sparselyConnected([0], [[0, 2]], gen = lambda:1.0)
-        result = sparseInputComposition([], o, connectivities, hf)
+        result = sparseLayerInputComposition([], o, connectivities, hf)
         self.assertEqual(result, [2.0])
         
 
     def test_saveAndLoadTrainedModel(self):
-        parameters = NetParameters(0.65, 0.08, 0.8, 1, 2)
+        parameters = LearningParameters(0.65, 0.08, 0.8, 1, 2)
         
         nCollisionNodes = 3
         nMotors = 2

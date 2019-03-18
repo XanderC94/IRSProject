@@ -1,35 +1,8 @@
 import json, datetime, logging
-
-class NetParameters:
-    
-    def __init__(self, 
-    learningRate: float,
-    forgetRate: float,
-    collisionThreshold: float,  
-    motorThreshold: int,
-    reverseThreshold: int):
-        self.learningRate = learningRate
-        self.forgetRate = forgetRate
-        self.collisionThreshold = collisionThreshold
-        self.motorThreshold = motorThreshold
-        self.reverseThreshold = reverseThreshold
-
-    def __str__(self):
-        return (f"learningRate: {self.learningRate}, forgetRate: {self.forgetRate}, collisionThreshold: {self.collisionThreshold}, motorThreshold:  {self.motorThreshold}, reverseThreshold: {self.reverseThreshold}")
-
-    @staticmethod
-    def fromDict(params: dict):
-
-        return NetParameters(
-            learningRate = params['learningRate'],
-            forgetRate = params['forgetRate'],
-            collisionThreshold = params['collisionThreshold'],
-            motorThreshold = params['motorThreshold'],
-            reverseThreshold = params['reverseThreshold']
-        )
+from  libs.learningparameters  import * 
 
 class TrainedModel:
-    def __init__(self, version: int, parameters: NetParameters, connectivities: dict):
+    def __init__(self, version: int, parameters: LearningParameters, connectivities: dict):
         self.version = version
         self.parameters = parameters
         self.connectivities = connectivities
@@ -39,7 +12,7 @@ class TrainedModel:
     
     @classmethod
     def emptyModel(cls):
-        return TrainedModel("", NetParameters(0,0,0,0,0), {})
+        return TrainedModel("", LearningParameters(0,0,0,0,0), {})
 
 
 def saveTrainedModel(model: TrainedModel, path: str):
@@ -65,7 +38,7 @@ def loadTrainedModel(path: str) -> TrainedModel:
     with open(path, 'r') as json_data:
         loaded_json = json.load(json_data)
 
-    loaded_parameters = NetParameters(loaded_json["parameters"]["learningRate"],
+    loaded_parameters = LearningParameters(loaded_json["parameters"]["learningRate"],
     loaded_json["parameters"]["forgetRate"],
     loaded_json["parameters"]["collisionThreshold"],
     loaded_json["parameters"]["motorThreshold"],
