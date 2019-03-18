@@ -103,13 +103,11 @@ parameterChanger = ParameterChanger.fromConfig(nns.learningParameters, changingI
 while not parameterChanger.hasEnded:
     #initialize simulation
     log = utils.SimulationLog(version, executionMode, runtime, modelPath)
-
     
     nSteps = 0
     maxSteps = int((runtime * 60 * 1000) / timeStep)
 
     logger.info(f"TIME:{runtime} min | STEP-TIME:{timeStep} ms => MAX-STEPS: {maxSteps}")
-
 
     for k, m in motors.items():
         m.device.setPosition(float('+inf'))

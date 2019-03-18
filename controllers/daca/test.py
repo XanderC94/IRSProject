@@ -93,11 +93,10 @@ class TestStringMethods(unittest.TestCase):
         step = 0.1
         changer = ParameterChanger(parameters, "collisionThreshold", minVal, maxVal, step)
         current_val = minVal
-        while not changer.hasEnded:
+        while not changer.hasEnded: 
+            self.assertEqual(current_val.__round__(2),parameters.collisionThreshold.__round__(2))
+            current_val = current_val + step.__round__(2) if not changer.hasEnded else maxVal
             changer.updateParameter()
-            current_val = current_val + step if not changer.hasEnded else maxVal 
-            print(current_val)
-            self.assertEqual(current_val,parameters.collisionThreshold)
             pass
         changer.updateParameter()
         self.assertEqual(maxVal, parameters.collisionThreshold)
