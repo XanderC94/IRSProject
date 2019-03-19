@@ -105,7 +105,7 @@ class TestStringMethods(unittest.TestCase):
             
             current_val = min(current_val + step, maxVal).__round__(3)
             
-        self.assertEqual(maxVal, parameters.collisionThreshold)
+        self.assertTrue(maxVal >= parameters.collisionThreshold)
     
     def test_changerDectorator(self):
 
@@ -128,6 +128,9 @@ class TestStringMethods(unittest.TestCase):
 
         changer = ParametersChanger.fromList(parameters, info.copy())
 
+        step1, step2 = info[0]['changeStep'], info[1]['changeStep']
+        max1, max2 = info[0]['maxVal'], info[1]['maxVal']
+        min1, min2 = info[0]['minVal'], info[1]['minVal']
         v1, v2 = 0.0, 0.0
 
         while changer.hasNext():
@@ -137,11 +140,13 @@ class TestStringMethods(unittest.TestCase):
             self.assertEqual(v1, parameters.learningRate)
             self.assertEqual(v2, parameters.forgetRate)
 
-            v1 = (min(v1, info[0]['maxVal']) + info[0]['changeStep']).__round__(3)
+            print(__next)
+
+            v1 = min(v1 + step1, max1).__round__(3)
             
-            if v1 > info[0]['maxVal']:
-                v2 = (min(v2, info[1]['maxVal']) + info[1]['changeStep']).__round__(3)
-                v1 = info[0]['minVal'].__round__(3)
+            if v1 >= max1:
+                v2 = min(v2 + step2, max2).__round__(3)
+                v1 = min1
         
 
         

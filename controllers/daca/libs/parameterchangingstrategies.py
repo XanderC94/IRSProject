@@ -46,27 +46,27 @@ class ParameterChanger(Changer):
         if self.currentValue + self.changeStep < self.maxValue:
             self.currentValue += self.changeStep
         else:
-            self.currentValue = self.maxValue 
+            self.currentValue = self.maxValue
+
         self.parameters.setParameter(self.parameterToChange, (self.currentValue / MULT_FACTOR).__round__(ROUND_FACTOR))
 
     def hasNext(self) -> bool:
 
-        return self.currentValue < (self.maxValue + self.changeStep)
+        return self.currentValue < self.maxValue # + self.changeStep
 
     def next(self) -> {str:float}:
 
         if self.hasNext():
 
-            __retval = {self.parameterToChange: float(self.currentValue / MULT_FACTOR).__round__(ROUND_FACTOR)}
+            __retval =  float(self.currentValue / MULT_FACTOR).__round__(ROUND_FACTOR)
            
-            self.currentValue = min(self.currentValue, self.maxValue) + self.changeStep
+            self.currentValue = min(self.currentValue + self.changeStep, self.maxValue)
             
-            return __retval
+            return {self.parameterToChange:__retval}
 
         else: raise Exception('Parameter Changer limit reached!')
     
     def reset(self):
-
         self.currentValue = self.minValue
         self.__hasEnded = False
 
@@ -106,7 +106,6 @@ class ParametersChanger(Changer):
             raise Exception('Parameter Changer limit reached!')
     
     def hasNext(self) -> bool:
-
         return self.changer.hasNext() or self.chained.hasNext()
 
     def reset(self):
