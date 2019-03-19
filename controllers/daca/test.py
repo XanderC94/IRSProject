@@ -97,17 +97,17 @@ class TestStringMethods(unittest.TestCase):
 
         current_val = minVal
 
-        while changer.hasNext():
-            __next = changer.next()
-            changed = parameters.setParameters(__next)
+        while not changer.hasEnded():
+
+            current_val = min(current_val + step, maxVal).__round__(3)
+            
+            changer.updateParameter()
 
             self.assertEqual(current_val, parameters.collisionThreshold.__round__(3))
             
-            current_val = min(current_val + step, maxVal).__round__(3)
-            
         self.assertEqual(maxVal, parameters.collisionThreshold)
     
-    def test_changerDectorator(self):
+    def test_changerDecorator(self):
 
         parameters = LearningParameters(0.05, 0.8, 0.65, 2.0, 1.0)
 
@@ -116,17 +116,49 @@ class TestStringMethods(unittest.TestCase):
                 "parameter": "learningRate",
                 "minVal": 0.0,
                 "maxVal": 0.015,
-                "changeStep": 0.005
+                "changeStep": 0.004
             },
             {
                 "parameter": "forgetRate",
                 "minVal": 0.0,
                 "maxVal": 0.20,
-                "changeStep": 0.05 
+                "changeStep": 0.05
             }
         ]
 
-        changer = ParametersChanger.fromList(parameters, info.copy())
+        step1, step2 = info[0]['changeStep'], info[1]['changeStep']
+        max1, max2 = info[0]['maxVal'], info[1]['maxVal']
+        min1, min2 = info[0]['minVal'], info[1]['minVal']
+        v1, v2 = 0.0, 0.0
+
+        # UNBOUNDED = value in [minValue, maxValue]
+        print('Unbounded')
+        changer = ParametersChanger.fromList(info.copy(), bounded=False)
+
+        while changer.hasNext():
+            __next = changer.next()
+            changed = parameters.setParameters(__next)
+
+            self.assertEqual(v1, parameters.learningRate)
+            self.assertEqual(v2, parameters.forgetRate)
+
+            print(__next)
+
+            v1 = (v1 + step1).__round__(3)
+            
+            if v1 >= max1 + step1:
+                v2 = (v2 + step2).__round__(3)
+                v1 = min1
+            
+            v1 = min(v1, max1)
+            v2 = min(v2, max2)
+
+        self.assertEqual(max1, parameters.learningRate)
+        self.assertEqual(max2, parameters.forgetRate)
+
+        # BOUNDED => value in [minValue, maxValue)
+        print('Bounded')
+        changer = ParametersChanger.fromList(info.copy(), bounded=True)
 
         v1, v2 = 0.0, 0.0
 
@@ -137,13 +169,19 @@ class TestStringMethods(unittest.TestCase):
             self.assertEqual(v1, parameters.learningRate)
             self.assertEqual(v2, parameters.forgetRate)
 
-            v1 = (min(v1, info[0]['maxVal']) + info[0]['changeStep']).__round__(3)
-            
-            if v1 > info[0]['maxVal']:
-                v2 = (min(v2, info[1]['maxVal']) + info[1]['changeStep']).__round__(3)
-                v1 = info[0]['minVal'].__round__(3)
-        
+            print(__next)
 
+            v1 = (v1 + step1).__round__(3)
+            
+            if v1 >= max1:
+                v2 = (v2 + step2).__round__(3)
+                v1 = min1
+            
+            v1 = min(v1, max1)
+            v2 = min(v2, max2)
+        
+        self.assertGreater(max1, parameters.learningRate)
+        self.assertGreater(max2, parameters.forgetRate)
         
 if __name__ == '__main__':
     unittest.main()

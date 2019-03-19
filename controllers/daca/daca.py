@@ -123,13 +123,12 @@ if opt.changingInfo is None:
     simulation(opt, model)
 else:
 
-    
     initialPositionCoordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
     initialOrientation = epuck.robot.getSelf().getField("rotation").getSFRotation()
 
     initialConnectivities = copy.deepcopy(ann.getConnectivities())
 
-    parametersChanger = ParametersChanger.fromList(ann.getNetworkParams(), opt.changingInfo)
+    parametersChanger = ParametersChanger.fromList(opt.changingInfo, bounded=False)
 
     while parametersChanger.hasNext():
 
