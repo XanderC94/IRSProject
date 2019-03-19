@@ -190,6 +190,14 @@ class TestStringMethods(unittest.TestCase):
         changer = ModelChanger.createFromFilePaths(files)
         for file in files:
             self.assertEqual(changer.next(), loadTrainedModel(file))
+    
+    def test_modelChangerHasNext(self):
+        files = getAllFilesIn("./../../model/modelforunittests", "json")
+        changer = ModelChanger.createFromFilePaths(files)
+        for file in files:
+            self.assertTrue(changer.hasNext())
+            changer.next()
+        self.assertFalse(changer.hasNext())
         
 if __name__ == '__main__':
     unittest.main()
