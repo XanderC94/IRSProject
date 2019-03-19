@@ -77,54 +77,38 @@ if len(sys.argv) > 1:
 
     # ------------------------------------------------------------------
 
+    versions = df['version'].unique()
+    modes = df['mode'].unique()
+
+    print(modes, versions)
+
     plot_columns = ['LR','FR', 'CT','%events']
-
-    mode = 'train'
-
-    xlra, yfra, cta, zea = (
-        df[filterModeAndVersion(df, mode, 2) & filterAvoidance(df)][plot_columns].T.values
-    )
-
-    xlrc, yfrc, ctc, zec = (
-        df[filterModeAndVersion(df, mode, 2) & filterCollision(df)][plot_columns].T.values
-    )
     
-    trainPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
-    trainPlot.suptitle('Train Data - (LR,FR,Score), CT')
-    trainPlot.canvas.set_window_title(mode)    
+    for version in versions:
+        for mode in modes:
 
-    plotter.subplots_adjust(
-        left=0.0,
-        right=1.0,
-        bottom=0.0,
-        top=1.0,
-        wspace= 0.0,
-        hspace=0.0
-    )
+            xlra, yfra, cta, zea = (
+                df[filterModeAndVersion(df, mode, version) & filterAvoidance(df)][plot_columns].T.values
+            )
+
+            xlrc, yfrc, ctc, zec = (
+                df[filterModeAndVersion(df, mode, version) & filterCollision(df)][plot_columns].T.values
+            )
+            
+            trainPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
+            trainPlot.suptitle(f'{mode} Data - Ann v{version} - (LR,FR,Score), CT')
+            trainPlot.canvas.set_window_title(mode)    
+
+            plotter.subplots_adjust(
+                left=0.0,
+                right=1.0,
+                bottom=0.0,
+                top=1.0,
+                wspace= 0.0,
+                hspace=0.0
+            )
 
     # ------------------------------------------------------------------
-    
-    mode = 'test'
-
-    xlra, yfra, cta, zea = (
-        df[filterModeAndVersion(df, mode, 2) & filterAvoidance(df)][plot_columns].T.values
-    )
-
-    xlrc, yfrc, ctc, zec = (
-        df[filterModeAndVersion(df, mode, 2) & filterCollision(df)][plot_columns].T.values
-    )
-
-    testPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
-    testPlot.suptitle('Test Data - (LR,FR,Score), CT')
-    testPlot.canvas.set_window_title(mode)
-    plotter.subplots_adjust(
-        left=0.0,
-        right=1.0,
-        bottom=0.0,
-        top=1.0,
-        wspace= 0.0,
-        hspace=0.0
-    )
 
     plotter.legend()
     plotter.show()
