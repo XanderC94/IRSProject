@@ -8,7 +8,7 @@ import libs.netversions.version3.neuralnetstructure as nns
 def setNetworkParameters(params: dict or LearningParameters):
 
     if isinstance(params, dict): 
-        nns.learningParameters = LearningParameters.fromtDict(params)
+        nns.learningParameters = LearningParameters.fromDict(params)
 
     elif isinstance(params, LearningParameters):
         nns.learningParameters = params
