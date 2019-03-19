@@ -1,4 +1,5 @@
 from libs.learningparameters import LearningParameters
+from libs.utils import TrainedModel, loadTrainedModel
 
 def defaultChanging():
     return {
@@ -65,6 +66,34 @@ class Changer:
     
     def reset(self):
         pass
+
+class ModelChanger(Changer):
+    def __init__(self, trainedModels:list):
+        self._trainedModels = trainedModels
+        self._elementPointer = 0
+
+    def hasNext(self) -> bool:
+        return self._elementPointer < len(self._trainedModels)
+
+    def next(self) -> {str:TrainedModel}:
+
+        if self.hasNext():
+
+            __retval = self._trainedModels[self._elementPointer]
+            
+            self._elementPointer += 1
+            
+            return __retval
+
+        else: raise Exception('Parameter Changer limit reached!')
+
+    def reset(self):
+        self._elementPointer = 0
+
+    @staticmethod
+    def createFromFilePaths(files: list):
+        return ModelChanger(list(loadTrainedModel(f) for f in files))
+
 
 class ChangeStrategy(Changer):
 
