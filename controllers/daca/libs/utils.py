@@ -1,6 +1,7 @@
 import json, datetime, logging
 from  libs.learningparameters  import LearningParameters 
 from pathlib import Path
+from glob import glob
 
 
 class TrainedModel:
@@ -105,3 +106,7 @@ class SimulationLog:
             json.dump(self.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
 
         return file_name
+
+
+def getAllFilesIn(directory:str, extension:str):
+    return (glob(f"{directory}/*.{json}"))
