@@ -109,4 +109,4 @@ class SimulationLog:
 
 
 def getAllFilesIn(directory:str, extension:str):
-    return (glob(f"{directory}/*.{json}"))
+    return (glob(f"{directory}*.{extension}"))
