@@ -75,7 +75,7 @@ class ModelChanger(Changer):
     def hasNext(self) -> bool:
         return self._elementPointer < len(self._trainedModels)
 
-    def next(self) -> {str:TrainedModel}:
+    def next(self) -> {TrainedModel}:
 
         if self.hasNext():
 
@@ -83,7 +83,7 @@ class ModelChanger(Changer):
             
             self._elementPointer += 1
             
-            return __retval
+            return {__retval}
 
         else: raise Exception('Parameter Changer limit reached!')
 
@@ -146,7 +146,7 @@ class ChangeStrategy(Changer):
 
 class ParametersChanger(Changer):
 
-    def __init__(self,  changer: Changer, chained: Changer):
+    def __init__(self,  changer: Changer, chained: Changer = Changer()):
         self.changer = changer
         self.chained = chained
         self.__next = {} if not chained.hasNext() else changer.next()
