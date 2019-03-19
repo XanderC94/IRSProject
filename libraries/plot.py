@@ -66,8 +66,8 @@ if len(sys.argv) > 1:
     print(coll)
     print(avoid)
 
-    avoid.to_csv(savePath / f'avoid.all.{__date()}.csv', index = False)
-    coll.to_csv(savePath / f'coll.all.{__date()}.csv', index = False)
+    avoid.to_csv(savePath / f'res.avoid.all.{__date()}.csv', index = False)
+    coll.to_csv(savePath / f'res.coll.all.{__date()}.csv', index = False)
 
     # ------------------------------------------------------------------
 
@@ -87,12 +87,12 @@ if len(sys.argv) > 1:
             df[filtColl].sort_values(
                 ['std(x)', 'std(z)', '%events'],
                 ascending = [False, False, True]
-            ).to_csv(savePath / f'coll.v{version}.{mode}.{__date()}.csv')
+            ).to_csv(savePath / f'res.coll.v{version}.{mode}.{__date()}.csv')
 
             df[filtColl].sort_values(
                 ['std(x)', 'std(z)', '%events'],
                 ascending = [False, False, True]
-            ).to_csv(savePath / f'avoid.v{version}.{mode}.{__date()}.csv')
+            ).to_csv(savePath / f'res.avoid.v{version}.{mode}.{__date()}.csv')
 
             # -------------------------------------------------------------------------------
 
