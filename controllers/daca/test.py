@@ -87,22 +87,63 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(value, parameters.reverseThreshold)
 
     def test_parameterChanger(self):
+
         parameters = LearningParameters(3.0, 4.0, 5.0, 6.0, 7.0)
         minVal = 3.0
         maxVal = 4.0
         step = 0.1
+
         changer = ParameterChanger(parameters, "collisionThreshold", minVal, maxVal, step)
+
         current_val = minVal
-        while not changer.hasEnded: 
-            self.assertEqual(current_val.__round__(2),parameters.collisionThreshold.__round__(2))
-            current_val = current_val + step.__round__(2) if not changer.hasEnded else maxVal
-            changer.updateParameter()
-            pass
-        changer.updateParameter()
+
+        while changer.hasNext():
+            __next = changer.next()
+            changed = parameters.setParameters(__next)
+
+            self.assertEqual(current_val, parameters.collisionThreshold.__round__(3))
+            
+            current_val = min(current_val + step, maxVal).__round__(3)
+            
         self.assertEqual(maxVal, parameters.collisionThreshold)
+    
+    def test_changerDectorator(self):
+
+        parameters = LearningParameters(0.05, 0.8, 0.65, 2.0, 1.0)
+
+        info = [
+            {
+                "parameter": "learningRate",
+                "minVal": 0.0,
+                "maxVal": 0.015,
+                "changeStep": 0.005
+            },
+            {
+                "parameter": "forgetRate",
+                "minVal": 0.0,
+                "maxVal": 0.20,
+                "changeStep": 0.05 
+            }
+        ]
+
+        changer = ParametersChanger.fromList(parameters, info.copy())
+
+        v1, v2 = 0.0, 0.0
+
+        while changer.hasNext():
+            __next = changer.next()
+            changed = parameters.setParameters(__next)
+
+            self.assertEqual(v1, parameters.learningRate)
+            self.assertEqual(v2, parameters.forgetRate)
+
+            v1 = (min(v1, info[0]['maxVal']) + info[0]['changeStep']).__round__(3)
+            
+            if v1 > info[0]['maxVal']:
+                v2 = (min(v2, info[1]['maxVal']) + info[1]['changeStep']).__round__(3)
+                v1 = info[0]['minVal'].__round__(3)
         
 
-
-
+        
 if __name__ == '__main__':
     unittest.main()

@@ -4,6 +4,7 @@ from libs.log import logger
 class Options:
 
     def __init__(self, opt:dict):
+        
         self.version = 2
 
         if 'version' in opt:

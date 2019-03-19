@@ -19,7 +19,7 @@ class LearningParameters:
         self.reverseThreshold = reverseThreshold
 
     def __str__(self):
-        return f"learningRate: {self.learningRate}, forgetRate: {self.forgetRate}, collisionThreshold: {self.collisionThreshold}, motorThreshold:  {self.motorThreshold}, reverseThreshold: {self.reverseThreshold}"
+        return f"{self.__dict__}"
 
     @staticmethod
     def fromDict(params: dict):
@@ -45,11 +45,37 @@ class LearningParameters:
             self.reverseThreshold = value
             pass
 
+    def setParameters(self, parameters: dict) -> bool:
+
+        _changed = 0
+
+        if LearningParameters.LEARNING_RATE_STR in parameters:
+            self.learningRate = parameters[LearningParameters.LEARNING_RATE_STR]
+            _changed += 1
+
+        if LearningParameters.FORGET_RATE_STR in parameters:
+            self.forgetRate = parameters[LearningParameters.FORGET_RATE_STR]
+            _changed += 1
+        
+        if LearningParameters.COLLISION_THRESHOLD_STR in parameters:
+            self.collisionThreshold = parameters[LearningParameters.COLLISION_THRESHOLD_STR]
+            _changed += 1
+
+        if LearningParameters.MOTOR_THRESHOLD_STR in parameters:
+            self.motorThreshold = parameters[LearningParameters.MOTOR_THRESHOLD_STR]
+            _changed += 1
+
+        if LearningParameters.REVERSE_THRESHOLD_STR in parameters:
+            self.reverseThreshold = parameters[LearningParameters.REVERSE_THRESHOLD_STR]
+            _changed += 1
+        
+        return _changed > 0
+
     def toDict(self):
         return {
-        LearningParameters.LEARNING_RATE_STR:self.learningRate,
-        LearningParameters.FORGET_RATE_STR:self.forgetRate,
-        LearningParameters.COLLISION_THRESHOLD_STR:self.collisionThreshold,
-        LearningParameters.MOTOR_THRESHOLD_STR:self.motorThreshold,
-        LearningParameters.REVERSE_THRESHOLD_STR:self.reverseThreshold
-    }
+            LearningParameters.LEARNING_RATE_STR:self.learningRate,
+            LearningParameters.FORGET_RATE_STR:self.forgetRate,
+            LearningParameters.COLLISION_THRESHOLD_STR:self.collisionThreshold,
+            LearningParameters.MOTOR_THRESHOLD_STR:self.motorThreshold,
+            LearningParameters.REVERSE_THRESHOLD_STR:self.reverseThreshold
+        }
