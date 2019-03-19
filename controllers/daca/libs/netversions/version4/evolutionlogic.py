@@ -7,7 +7,7 @@ from libs.motorresponse import wheelVelocity
 def setNetworkParameters(params: dict or LearningParameters):
 
     if isinstance(params, dict): 
-        nns.learningParameters = LearningParameters.fromtDict(params)
+        nns.learningParameters.setParameters(params)
 
     elif isinstance(params, LearningParameters):
         nns.learningParameters = params

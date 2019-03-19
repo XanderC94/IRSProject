@@ -13,7 +13,7 @@ from libs.motorresponse import wheelVelocity
 import libs.utils as utils
 from libs.log import logger
 from libs.learningparameters import LearningParameters
-from libs.parameterchangingstrategies import ParameterChanger
+from libs.parameterchangingstrategies import ParametersChanger
 
 opt = Options.fromArgv(sys.argv)
 
@@ -129,9 +129,11 @@ else:
 
     initialConnectivities = copy.deepcopy(ann.getConnectivities())
 
-    parameterChanger = ParameterChanger.fromConfig(ann.getNetworkParams(), opt.changingInfo)
+    parametersChanger = ParametersChanger.fromList(ann.getNetworkParams(), opt.changingInfo)
 
-    while not parameterChanger.hasEnded:
+    while parametersChanger.hasNext():
+
+        ann.setNetworkParameters(parametersChanger.next())
 
         simulation(opt, model)
 
@@ -146,8 +148,6 @@ else:
 
         if opt.isTrainingModeActive:
             ann.setNetworkConnectivities(copy.deepcopy(initialConnectivities))
-
-        parameterChanger.updateParameter()
 
         pass
 
