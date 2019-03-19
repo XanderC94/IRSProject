@@ -15,7 +15,7 @@ def eventMatcher(x) -> str:
     else:
         return "Error"
 
-def extractData(path: Path):
+def extractData(path: Path) -> Path:
 
     data = {}
 
@@ -104,9 +104,12 @@ def extractData(path: Path):
     )
     
     stats['event'] = stats[['collision', 'activation']].apply(lambda x: eventMatcher(x), axis = 1)
-    
+
+    stats['version'] = model['version']
+    stats['mode'] = data['mode']
+
     # Reodering columns
-    stats = stats[['event', 'collision', 'activation', 'nSteps', 'nEvents']]
+    stats = stats[['version', 'mode', 'event', 'collision', 'activation', 'nSteps', 'nEvents']]
     
     # Data statistics:
     
@@ -143,7 +146,6 @@ def extractData(path: Path):
     )
     
     # Dipping some useful data
-
     stats['std(x)'] = dx
     stats['std(z)'] = dz
     stats['max(x)'] = maxx
@@ -168,4 +170,4 @@ def extractData(path: Path):
 
     print(f'Saved to: {savePath}', end='\n\n')
 
-    return (savePath, data['mode'], model['version'])
+    return savePath

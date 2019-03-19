@@ -1,4 +1,4 @@
-import math, json, sys, copy, os, csv
+import math, json, sys, copy, os, csv, datetime
 
 import matplotlib.pyplot as plotter
 from mpl_toolkits.mplot3d import axes3d
@@ -12,18 +12,9 @@ import numpy as np
 
 # ------------------------------------------------------------------------------------------------------ #
 
-csvPaths = { }
+csvPaths = []
 
-def extractAndStore(path: Path):
-    csvPath, mode, version = extractData(path)
-
-    if not version in csvPaths:
-        csvPaths.update({version:{}})
-
-    if mode in csvPaths[version]:
-        csvPaths[version][mode].append(csvPath)
-    else:
-        csvPaths[version].update({mode:[csvPath]})
+__date = lambda: f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
 
 def filterModeAndVersion(df: panda.DataFrame, mode:str, version:int):
     return (df['version'] == version) & (df['mode'] == mode)
@@ -37,63 +28,77 @@ def filterCollision(df: panda.DataFrame):
 if len(sys.argv) > 1:
 
     dataPath = Path(sys.argv[1])
+    savePath = ''
 
     if dataPath.is_file() and dataPath.suffix == '.json':
-        extractAndStore(dataPath)
+        csvPaths.append(extractData(dataPath))
+        savePath = dataPath.parent / 'csv'
 
     elif dataPath.is_dir():
 
+        savePath = dataPath / 'csv'
+
         for f in dataPath.iterdir():
             if f.is_file() and f.suffix == '.json':
-                extractAndStore(f)
-
+                csvPaths.append(extractData(f))
+        
     # -------------------------------------------------------------------------------------------------- #
     
     df = panda.DataFrame()
 
-    for version, modes in csvPaths.items():
-        for mode, csvPathList in modes.items():
-            for csvPath in csvPathList:
-                _df = panda.read_csv(csvPath)
-                _df['version'] = version
-                _df['mode'] = mode
-                df = df.append(_df, ignore_index=True)
+    for csvPath in csvPaths:
+        _csv = panda.read_csv(csvPath)
+        df = df.append(_csv, ignore_index=True)
 
     df = df.drop(['activation', 'collision'], axis = 1)
     df = df[df['event'] != 'Going By']
 
-    print(df[filterCollision(df)].sort_values(
-            ['version', 'mode', 'std(x)', 'std(z)', '%events'],
-            ascending = [True, True, False, False, True]
+    coll = df[filterCollision(df)].sort_values(
+            ['std(x)', 'std(z)', '%events'],
+            ascending = [False, False, True]
         )
-        
-    )
 
-    print(df[filterAvoidance(df)].sort_values(
-            ['version', 'mode', 'std(x)', 'std(z)', '%events'], 
-            ascending = [True, True, False, False, False]
+    avoid = df[filterAvoidance(df)].sort_values(
+            ['std(x)', 'std(z)', '%events'], 
+            ascending = [False, False, False]
         )
-    )
+
+    print(coll)
+    print(avoid)
+
+    avoid.to_csv(savePath / f'avoid.all.{__date()}.csv', index = False)
+    coll.to_csv(savePath / f'coll.all.{__date()}.csv', index = False)
 
     # ------------------------------------------------------------------
 
     versions = df['version'].unique()
     modes = df['mode'].unique()
 
-    print(modes, versions)
-
     plot_columns = ['LR','FR', 'CT','%events']
     
     for version in versions:
         for mode in modes:
+            
+            # ------------------------------------------------------------------
 
-            xlra, yfra, cta, zea = (
-                df[filterModeAndVersion(df, mode, version) & filterAvoidance(df)][plot_columns].T.values
-            )
+            filtColl = filterModeAndVersion(df, mode, version) & filterCollision(df)
+            filtAv = filterModeAndVersion(df, mode, version) & filterAvoidance(df)
 
-            xlrc, yfrc, ctc, zec = (
-                df[filterModeAndVersion(df, mode, version) & filterCollision(df)][plot_columns].T.values
-            )
+            df[filtColl].sort_values(
+                ['std(x)', 'std(z)', '%events'],
+                ascending = [False, False, True]
+            ).to_csv(savePath / f'coll.v{version}.{mode}.{__date()}.csv')
+
+            df[filtColl].sort_values(
+                ['std(x)', 'std(z)', '%events'],
+                ascending = [False, False, True]
+            ).to_csv(savePath / f'avoid.v{version}.{mode}.{__date()}.csv')
+
+            # -------------------------------------------------------------------------------
+
+            xlra, yfra, cta, zea = df[filtAv][plot_columns].T.values
+
+            xlrc, yfrc, ctc, zec = df[filtColl][plot_columns].T.values
             
             trainPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
             trainPlot.suptitle(f'{mode} Data - Ann v{version} - (LR,FR,Score), CT')
