@@ -1,4 +1,4 @@
-"""phototaxis controller."""
+"""daca controller."""
 
 # You may need to import some classes of the controller module. Ex:
 #  from controller import Robot, LED, DistanceSensor
@@ -8,14 +8,10 @@ import sys, os, copy
 print(os.getcwd())
 
 import libs.epuck as epuck
-from libs.argutils import Options
-from libs.motorresponse import wheelVelocity
+from libs.argutils import opt, Options
 import libs.utils as utils
 from libs.log import logger
-from libs.learningparameters import LearningParameters
-from libs.parameterchangingstrategies import ParametersChanger, ModelChanger
-
-opt = Options.fromArgv(sys.argv)
+import libs.simulation as simulation
 
 logger.info(opt)
 
@@ -35,69 +31,7 @@ logger.info(f"Using ANN v{opt.version}")
 
 # See libs.epuck
 
-# ------------------------------------------------------------------------------------------------------
-
-def simulation(opt : Options, loghook: lambda info: None):
-    # initialize simulation
-    nSteps = 0
-    maxSteps = int((opt.runtime * 60 * 1000) / epuck.timeStep)
-
-    logger.info(f"TIME:{opt.runtime} min | STEP-TIME:{epuck.timeStep} ms => MAX-STEPS: {maxSteps}")
-
-    # -------------------------------------------------
-
-    nTouches = 0
-
-    # Main loop:
-    # - perform simulation steps until Webots is stopping the controller
-    while epuck.robot.step(epuck.timeStep) != -1 and nSteps != maxSteps:
-        
-        # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
-
-        distances = [s.device.getValue() for _, s in epuck.dss.items()]
-        bumps = [s.device.getValue() for _, s in epuck.bumpers.items()]
-        
-        hasTouched = (1 in bumps)
-        
-        if hasTouched: nTouches += 1
-
-        # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
-        
-        ann.processAnnState(distances, bumps)
-
-        # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        lv, rv = ann.calculateMotorSpeed()
-        epuck.motors['left'].device.setVelocity(lv)
-        epuck.motors['right'].device.setVelocity(rv)
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        if opt.isTrainingModeActive: ann.updateWeights()
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        
-        
-        coordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
-        robotPosition = utils.Position.fromTuple(coordinates)
-
-        loghook(
-            utils.LogEntry(nSteps, hasTouched, 1 in ann.getLayerOutput(1).values(), robotPosition, nTouches)
-        )
-
-        nSteps += 1
-
-        pass
-    
-    return utils.TrainedModel(
-        opt.version, 
-        ann.getNetworkParams(), 
-        ann.getConnectivities()
-    )
-
-#----------------------------------------------------------------------------------------------------
-    
-#----------------------------------------------------------------------------------------------------
+#-------------------------------------------
 
 if not opt.isTrainingModeActive:
 
@@ -119,7 +53,7 @@ print(ann.getNetworkParams())
 
 log = utils.SimulationLog(opt.executionMode, opt.runtime)
 
-model = simulation(opt, loghook = lambda e: log.addLogEntry(e))
+model = simulation.run(opt, loghook = lambda e: log.addLogEntry(e))
 
 if opt.isTrainingModeActive:
     utils.saveTrainedModel(model, opt.modelPath)
@@ -130,14 +64,7 @@ log.saveTo(opt.simulationLogPath)
 logger.flush()
 
 # Cleanup code.
-epuck.motors['left'].device.setVelocity(0.0)
-epuck.motors['right'].device.setVelocity(0.0)
 
-epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_PAUSE)
-
-if opt.onTerminationQuit:
-    epuck.robot.simulationQuit(1)
-else:
-    epuck.robot.simulationReset()
+simulation.cleanup(opt)
 
 # --------------------------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import json
+import json, sys
 from pathlib import Path
 from libs.log import logger
 
@@ -69,3 +69,5 @@ def parseArgs(argv):
             opt = json.load(config)
 
     return opt
+
+opt = Options.fromArgv(sys.argv)
