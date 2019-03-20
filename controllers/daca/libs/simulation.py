@@ -21,6 +21,31 @@ else:
 
 # See libs.epuck
 
+# ------------------------------------------------------------------------
+
+def __step(opt: Options):
+    # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
+
+    distances = [s.device.getValue() for _, s in epuck.dss.items()]
+    bumps = [s.device.getValue() for _, s in epuck.bumpers.items()]
+
+    # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    ann.processAnnState(distances, bumps)
+
+    # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    lv, rv = ann.calculateMotorSpeed()
+
+    epuck.motors['left'].device.setVelocity(lv)
+    epuck.motors['right'].device.setVelocity(rv)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    if opt.isTrainingModeActive: ann.updateWeights()
+
+    return (1 in bumps)
+
 # ------------------------------------------------------------------------------------------------------
 
 def run(opt : Options, loghook: lambda info: None) -> TrainedModel:
@@ -39,28 +64,11 @@ def run(opt : Options, loghook: lambda info: None) -> TrainedModel:
     # - perform simulation steps until Webots is stopping the controller
     while epuck.robot.step(epuck.timeStep) != -1 and nSteps != maxSteps:
         
-        # ~~~~~~~ Read the sensors: ~~~~~~~~~~~~~
+        # -------------------- PERFORM SIMULATION STEP ------------------------
 
-        distances = [s.device.getValue() for _, s in epuck.dss.items()]
-        bumps = [s.device.getValue() for _, s in epuck.bumpers.items()]
-        
-        hasTouched = (1 in bumps)
-        
-        if hasTouched: nTouches += 1
+        hasTouched = __step(opt)
 
-        # ~~~~~~~~~~~~~~~~~ Process Sensors Data ~~~~~~~~~~~~~~~~~~~~~~~~~
-        
-        ann.processAnnState(distances, bumps)
-
-        # ~~~~~~~~~~~~~~~~~ UPDATE MOTOR SPEED ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        lv, rv = ann.calculateMotorSpeed()
-        epuck.motors['left'].device.setVelocity(lv)
-        epuck.motors['right'].device.setVelocity(rv)
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ANN WEIGHT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        if opt.isTrainingModeActive: ann.updateWeights()
+        if (hasTouched): nTouches += 1
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
