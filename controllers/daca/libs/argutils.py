@@ -44,7 +44,7 @@ class Options:
 
         self.webotsExecutablePath = ""
         if 'webotsExecutablePath' in opt:
-            self.webotMacExecutable = opt['webotsExecutablePath']
+            self.webotsExecutablePath = Path(opt['webotsExecutablePath'])
         
         self.onTerminationQuit = True
         if 'onTerminationQuit' in opt:
@@ -71,5 +71,5 @@ def parseArgs(argv):
     if 'args' in args:
         with open(args['args'], "r") as config:
             opt = json.load(config)
-
+            
     return opt

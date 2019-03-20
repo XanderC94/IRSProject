@@ -24,9 +24,9 @@ def generateFileName(mode: str, model: TrainedModel):
     date = f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
     return f"annv{model.version}.{mode}.{pstr}.{date}"
 
-def writeJsonOnFile(json: dict, file_path: str):
+def writeJsonOnFile(content: dict, file_path: str):
     with open(file_path, 'w') as outfile:
-        json.dump(json, outfile)
+        json.dump(content, outfile)
 
 def writeModelOnFile(model: TrainedModel, file_path: str or Path):
     with open(file_path, 'w') as outfile:

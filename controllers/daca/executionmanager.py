@@ -1,30 +1,34 @@
 import sys, subprocess
-from libs.argutils import *
+from libs.argutils import Options
 from libs.utils import *
 from libs.parameterchangingstrategies import *
 
 
 opt = Options.fromArgv(sys.argv)
-controllerArgs = loaded_json("../../config/defaultControllerArgs.json")
+print(opt)
+    
+controllerArgs = loadJsonFile("../../config/defaultControllerArgs.json")
 modifiedControllerArgsFilePath = "../../config/controllerArgs.json"
-webotArguments = " --mode=fast --batch"    
+webotArguments = [opt.webotsExecutablePath, "--mode=fast", "--batch"] 
 
 #train mode
 def runTrain():
     changer = ParametersChanger.fromList(opt.changingInfo, bounded=False)
     while changer.hasNext():
         parameter = changer.next()
-        for K in parameter.keys
-            controllerArgs[k] = parameter[k]
+        for K,V in parameter.items():
+            controllerArgs['parameters'][K] = V
+            print(f"Run with parameters {controllerArgs}")
             writeJsonOnFile(controllerArgs, modifiedControllerArgsFilePath)
-            subprocess.call([ opt.webotsExecutablePath, webotArguments])
+            subprocess.run(webotArguments)
 
 
 #test mode
 def runTest():
     modelFiles = utils.getAllFilesIn(f"./{opt.modelPath}", "json")
-    for modelPath in modelFiles
+    for modelPath in modelFiles:
         controllerArgs["modelPath"] = modelPath
+        print(f"Test with model: {modelPath}")
         writeJsonOnFile(controllerArgs, modifiedControllerArgsFilePath)
         subprocess.call([ opt.webotsExecutablePath, webotArguments])
             
