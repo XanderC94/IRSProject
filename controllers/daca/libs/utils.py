@@ -1,6 +1,7 @@
 import json, datetime, logging
 from  libs.learningparameters  import LearningParameters 
 from pathlib import Path
+from glob import glob
 
 
 class TrainedModel:
@@ -110,3 +111,6 @@ class SimulationLog:
     
     def clear(self):
         self.log.clear()
+
+def getAllFilesIn(directory:str, extension:str):
+    return (glob(f"{directory}*.{extension}"))

@@ -59,8 +59,9 @@ class TestStringMethods(unittest.TestCase):
 
         test_model = TrainedModel("TestExample", parameters, connectivities)
         print(f"TEST MODEL: {str(test_model)}")
-        writeModelOnFile(test_model, f"{test_model.version}.json")
-        loaded_model = loadTrainedModel(f"{test_model.version}.json")
+        directory = "./../../model/modelforunittests/"
+        writeModelOnFile(test_model, f"{directory}{test_model.version}.json")
+        loaded_model = loadTrainedModel(f"{directory}{test_model.version}.json")
         print(f"LOADED MODEL: {str(loaded_model)}")        
         self.assertEqual(str(loaded_model), str(test_model))
 
@@ -182,6 +183,21 @@ class TestStringMethods(unittest.TestCase):
         
         self.assertGreater(max1, parameters.learningRate)
         self.assertGreater(max2, parameters.forgetRate)
+
+
+    def test_modelChangerIterations(self):
+        files = getAllFilesIn("./../../model/modelforunittests", "json")
+        changer = ModelChanger.createFromFilePaths(files)
+        for file in files:
+            self.assertEqual(changer.next(), loadTrainedModel(file))
+    
+    def test_modelChangerHasNext(self):
+        files = getAllFilesIn("./../../model/modelforunittests", "json")
+        changer = ModelChanger.createFromFilePaths(files)
+        for file in files:
+            self.assertTrue(changer.hasNext())
+            changer.next()
+        self.assertFalse(changer.hasNext())
         
 if __name__ == '__main__':
     unittest.main()

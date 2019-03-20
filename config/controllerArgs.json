@@ -12,10 +12,12 @@
         "learningRate": 0.05,
         "forgetRate": 0.8
     },
-    "changingInfo": {
-        "parameter": "learningRate",
-        "minVal": 0.05,
-        "maxVal": 0.06,
-        "changeStep": 0.01 
-    }
+    "changingInfo": [
+        {
+            "parameter": "learningRate",
+            "minVal": 0.05,
+            "maxVal": 0.06,
+            "changeStep": 0.01
+        }
+    ]
 }
