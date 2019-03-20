@@ -69,26 +69,26 @@ class Changer:
 
 class ModelChanger(Changer):
     def __init__(self, trainedModels:list):
-        self._trainedModels = trainedModels
-        self._elementPointer = 0
+        self.__trainedModels = trainedModels
+        self.__elementPointer = 0
 
     def hasNext(self) -> bool:
-        return self._elementPointer < len(self._trainedModels)
+        return self.__elementPointer < len(self.__trainedModels)
 
     def next(self) -> TrainedModel:
 
         if self.hasNext():
 
-            __retval = self._trainedModels[self._elementPointer]
+            __retval = self.__trainedModels[self.__elementPointer]
             
-            self._elementPointer += 1
+            self.__elementPointer += 1
             
             return __retval
 
         else: raise Exception('Parameter Changer limit reached!')
 
     def reset(self):
-        self._elementPointer = 0
+        self.__elementPointer = 0
 
     @staticmethod
     def createFromFilePaths(files: list):

@@ -30,11 +30,6 @@ else:
     import libs.netversions.version2.evolutionlogic as ann
 
 logger.info(f"Using ANN v{opt.version}")
-        
-if opt.isTrainingModeActive and len(opt.parameters) > 0:
-    ann.setNetworkParameters(opt.parameters)
-
-logger.info(f"params:{ann.getNetworkParams()}")
 
 # Setup ------------------------------------
 
@@ -110,10 +105,10 @@ def simulation(opt : Options, model: utils.TrainedModel):
 
 #-----------------------------------------------------------------------------------------------------
 
-def buildParameterChanger():
-    parametersChanger = None
+def buildChanger():
+    changer = None
     if opt.isTrainingModeActive:
-        parametersChanger = ParametersChanger.fromList(opt.changingInfo, bounded=False)
+        changer = ParametersChanger.fromList(opt.changingInfo, bounded=False)
     else:
         modelFiles = utils.getAllFilesIn(f"./{opt.modelPath}", "json")
         """
@@ -122,21 +117,27 @@ def buildParameterChanger():
             parametersChanger = ParametersChanger(ModelChanger.createFromFilePaths(modelFiles), parametersChanger)
         else:
         """
-        parametersChanger = ModelChanger.createFromFilePaths(modelFiles)
+        changer = ModelChanger.createFromFilePaths(modelFiles)
 
-    return parametersChanger
+    return changer
     
 #----------------------------------------------------------------------------------------------------
 model = None
 
-if opt.changingInfo is None and "json" in opt.modelPath:
+if opt.changingInfo is None and opt.isTrainingModeActive:
    
-    if not opt.isTrainingModeActive:
-        model = utils.loadTrainedModel(opt.modelPath)
-        logger.info(model.parameters)
-        ann.setNetworkParameters(model.parameters)
-        ann.setNetworkConnectivities(model.connectivities)
+    # if not opt.isTrainingModeActive:
+    #     model = utils.loadTrainedModel(opt.modelPath)
+    #     logger.info(model.parameters)
+    #     ann.setNetworkParameters(model.parameters)
+    #     ann.setNetworkConnectivities(model.connectivities)
 
+    # elif opt.isTrainingModeActive and len(opt.parameters) > 0:
+    if len(opt.parameters) > 0:
+        ann.setNetworkParameters(opt.parameters)
+
+    logger.info(f"params:{ann.getNetworkParams()}")
+    
     simulation(opt, model)
 
 else:
@@ -146,21 +147,18 @@ else:
 
     initialConnectivities = copy.deepcopy(ann.getConnectivities())
 
+    changer = buildChanger()
 
-    parametersChanger = buildParameterChanger()
-
-
-    while parametersChanger.hasNext():
+    while changer.hasNext():
 
         if not opt.isTrainingModeActive:
-            model = parametersChanger.next()
+            model = changer.next()
             ann.setNetworkParameters(model.parameters)
             ann.setNetworkConnectivities(model.connectivities)
         else:
-            ann.setNetworkParameters(parametersChanger.next())
+            ann.setNetworkParameters(changer.next())
+            ann.setNetworkConnectivities(copy.deepcopy(initialConnectivities))
             
-
-
         print(ann.getNetworkParams())
 
         simulation(opt, model)
@@ -174,9 +172,9 @@ else:
         epuck.robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
         epuck.robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
 
-        if opt.isTrainingModeActive:
-            ann.setNetworkConnectivities(copy.deepcopy(initialConnectivities))
-
+        # epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_PAUSE)
+        # epuck.robot.simulationReset()
+        # epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_FAST)
         pass
 
 # Cleanup code.

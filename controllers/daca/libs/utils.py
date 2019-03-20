@@ -1,4 +1,4 @@
-import json, datetime, logging
+import json, datetime, logging, pathlib
 from  libs.learningparameters  import LearningParameters 
 from pathlib import Path
 from glob import glob
@@ -112,5 +112,12 @@ class SimulationLog:
     def clear(self):
         self.log.clear()
 
-def getAllFilesIn(directory:str, extension:str):
-    return (glob(f"{directory}*.{extension}"))
+def getAllFilesIn(target:str or Path, extension:str) -> list:
+
+    path = target if isinstance(target, Path) else Path(target)
+
+    return filter(
+        lambda f: extension in f.suffix,
+        [item for item in path.iterdir()] if path.is_dir() else [path]
+    )
+    # return (glob(f"{target}*.{extension}"))
