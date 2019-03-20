@@ -1,0 +1,11 @@
+{
+    "webotsExecutablePath" : "/Applications/Webots.app/webots",
+    "changingInfo": [
+        {
+            "parameter": "learningRate",
+            "minVal": 0.05,
+            "maxVal": 0.06,
+            "changeStep": 0.01
+        }
+    ]
+}

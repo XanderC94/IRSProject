@@ -24,6 +24,10 @@ def generateFileName(mode: str, model: TrainedModel):
     date = f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
     return f"annv{model.version}.{mode}.{pstr}.{date}"
 
+def writeJsonOnFile(json: dict, file_path: str):
+    with open(file_path, 'w') as outfile:
+        json.dump(json, outfile)
+
 def writeModelOnFile(model: TrainedModel, file_path: str):
     with open(file_path, 'w') as outfile:
         json.dump(model.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
@@ -41,12 +45,17 @@ def recursiveExtractDictWithIntKey(json)-> dict:
             connectivities.update({int(K): V})
     return connectivities
 
-def loadTrainedModel(path: str) -> TrainedModel:
-    
+def loadJsonFile(path: str) -> dict:
     loaded_json = {}
 
     with open(path, 'r') as json_data:
         loaded_json = json.load(json_data)
+
+    return loaded_json
+
+def loadTrainedModel(path: str) -> TrainedModel:
+    
+    loaded_json = loadJsonFile(path)
 
     loaded_parameters = LearningParameters(loaded_json["parameters"]["learningRate"],
     loaded_json["parameters"]["forgetRate"],

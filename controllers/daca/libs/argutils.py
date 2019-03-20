@@ -40,7 +40,11 @@ class Options:
         self.parameters = {}
         if 'parameters' in opt:
             self.parameters = opt['parameters']
-    
+
+        self.webotsExecutablePath = ""
+        if 'webotsExecutablePath' in opt:
+            self.webotMacExecutable = opt['webotsExecutablePath']
+
     @staticmethod
     def fromArgv(argv:list):
         return Options(parseArgs(argv))
