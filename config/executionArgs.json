@@ -1,4 +1,5 @@
 {
+    "mode" : "train",
     "webotsExecutablePath" : "/Applications/Webots.app/webots",
     "changingInfo": [
         {
