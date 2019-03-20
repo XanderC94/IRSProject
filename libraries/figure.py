@@ -3,9 +3,9 @@ from mpl_toolkits.mplot3d import axes3d
 import numpy as np
 
 
-point_label = lambda x,y,z,c: '(%.2f, %.2f, %.2f), ct=%.2f' % (x, y, float(z).__round__(2), c)
+point_label = lambda x,y,z,t: '(%.2f, %.2f, %.2f), %.2f' % (x, y, float(z).__round__(2), t)
 
-def figure(xs:list, ys:list, zs:list, cts:list, 
+def figure(xs:list, ys:list, zs:list, ts:list, 
     labels = ['avoidance events', 'collision events'], 
     colors = ['green', 'orange']):
 
@@ -36,7 +36,7 @@ def figure(xs:list, ys:list, zs:list, cts:list,
         x = xs[i]
         y = ys[i]
         z = zs[i]
-        t = cts[i]
+        t = ts[i]
 
         color = colors[i]
         label = labels[i]
@@ -49,13 +49,13 @@ def figure(xs:list, ys:list, zs:list, cts:list,
             color=color
         )
 
-        ax.plot(x, y, 0.0, zdir = 'z', linewidth=0.5, color=color)
-        ax.plot(x, z, 1.0, zdir = 'y', linewidth=0.5, color=color)
-        ax.plot(y, z, 0.0, zdir = 'x', linewidth=0.5, color=color)
+        # ax.plot(x, y, 0.0, zdir = 'z', linewidth=0.5, color=color)
+        # ax.plot(x, z, 1.0, zdir = 'y', linewidth=0.5, color=color)
+        # ax.plot(y, z, 0.0, zdir = 'x', linewidth=0.5, color=color)
 
-        for _x, _y, _z, _c in zip(x, y, z, t):
-            info = ax.text(_x, _y, _z, point_label(_x, _y, _z, _c), fontsize='xx-small')
-            text.append(info)
+        # for _x, _y, _z, _c in zip(x, y, z, t):
+        #     info = ax.text(_x, _y, _z, point_label(_x, _y, _z, _c), fontsize='xx-small')
+        #     text.append(info)
             # info.set_visible(False)
 
     # ---------------------------------------------------------------------------------------------

@@ -134,6 +134,8 @@ else:
 
         ann.setNetworkParameters(parametersChanger.next())
 
+        print(ann.getNetworkParams())
+
         simulation(opt, model)
 
         # Cleanup code and reset robot fields before next simulation.

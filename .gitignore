@@ -105,3 +105,4 @@ venv.bak/
 *.cache
 *.wbproj
 logs
+model

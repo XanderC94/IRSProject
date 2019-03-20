@@ -74,7 +74,7 @@ if len(sys.argv) > 1:
     versions = df['version'].unique()
     modes = df['mode'].unique()
 
-    plot_columns = ['LR','FR', 'CT','%events']
+    plot_columns = ['LR','FR','%events', 'CT']
     
     for version in versions:
         for mode in modes:
@@ -96,12 +96,12 @@ if len(sys.argv) > 1:
 
             # -------------------------------------------------------------------------------
 
-            xlra, yfra, cta, zea = df[filtAv][plot_columns].T.values
+            xa, ya, za, ta = df[filtAv][plot_columns].T.values
 
-            xlrc, yfrc, ctc, zec = df[filtColl][plot_columns].T.values
+            xc, yc, zc, tc = df[filtColl][plot_columns].T.values
             
-            trainPlot = figure([xlra, xlrc], [yfra, yfrc], [zea, zec], [cta, ctc])
-            trainPlot.suptitle(f'{mode} Data - Ann v{version} - (LR,FR,Score), CT')
+            trainPlot = figure([xa, xc], [ya, yc], [za, zc], [ta, tc])
+            trainPlot.suptitle(f'{mode} Data - Ann v{version} - {plot_columns}')
             trainPlot.canvas.set_window_title(mode)    
 
             plotter.subplots_adjust(

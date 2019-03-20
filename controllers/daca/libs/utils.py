@@ -104,4 +104,9 @@ class SimulationLog:
         with open(file_name, 'w') as outfile:
             json.dump(self.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
 
+        self.log.clear()
+        
         return file_name
+    
+    def clear(self):
+        self.log.clear()
