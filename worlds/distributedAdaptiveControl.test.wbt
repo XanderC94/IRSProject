@@ -24,7 +24,7 @@ E-puck {
   translation -0.03270612535979375 0.0003415275812462447 -0.4228115186816638
   rotation 0.15744552453836516 -0.9748782807719895 -0.15755394149906032 6.278937763495671
   controller "daca"
-  controllerArgs "--args=../../model/testArgs.json"
+  controllerArgs "--args=../../config/testArgs.json"
 }
 SolidBox {
   translation 0.25 0.125 0.1499999999999999
