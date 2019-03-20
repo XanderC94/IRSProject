@@ -9,10 +9,11 @@ print(opt)
     
 controllerArgs = loadJsonFile("../../config/defaultControllerArgs.json")
 modifiedControllerArgsFilePath = "../../config/controllerArgs.json"
-webotArguments = [opt.webotsExecutablePath, "--mode=fast", "--batch"] 
+webotsBootArguments = [opt.webotsExecutablePath, "--mode=fast", "--batch"] 
 
 #train mode
 def runTrain():
+        webotsBootArguments.append(opt.worldTrainPath) 
         controllerArgs["mode"] = "train"
         changer = ParametersChanger.fromList(opt.changingInfo, bounded=False)
         while changer.hasNext():
@@ -21,18 +22,20 @@ def runTrain():
                         controllerArgs['parameters'][K] = V
                         print(f"Run with parameters {controllerArgs}")
                         writeJsonOnFile(controllerArgs, modifiedControllerArgsFilePath)
-                        subprocess.run(webotArguments)
+                        subprocess.run(webotsBootArguments)
 
 
 #test mode
 def runTest():
+        webotsBootArguments.append(opt.worldTestPath)
         controllerArgs["mode"] = "test"   
-        modelFiles = utils.getAllFilesIn(f"./{opt.modelPath}", "json")
+        modelFiles = getAllFilesIn(f"./{controllerArgs['modelPath']}", "json")
+        print(f"Model path {opt.modelPath}")
         for modelPath in modelFiles:
-                controllerArgs["modelPath"] = modelPath
+                controllerArgs["modelPath"] = str(modelPath)
                 print(f"Test with model: {modelPath}")
                 writeJsonOnFile(controllerArgs, modifiedControllerArgsFilePath)
-                subprocess.call([ opt.webotsExecutablePath, webotArguments])
+                subprocess.call(webotsBootArguments)
             
 
 if opt.executionMode == "train":
@@ -41,7 +44,6 @@ if opt.executionMode == "train":
         print("END TRAIN!")
 elif opt.executionMode == "test":
         print("START TEST...")
-        controllerArgs = loaded_json("../../config/defaultControllerArgs.json")
         runTest()
         print("END TEST...")
 else:

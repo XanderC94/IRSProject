@@ -50,6 +50,14 @@ class Options:
         if 'onTerminationQuit' in opt:
             self.onTerminationQuit = opt['onTerminationQuit']
 
+        self.worldTrainPath = ""
+        if 'worldTrainPath' in opt:
+            self.worldTrainPath = opt['worldTrainPath']
+
+        self.worldTestPath = ""
+        if 'worldTestPath' in opt:
+            self.worldTestPath = opt['worldTestPath']
+
     @staticmethod
     def fromArgv(argv:list):
         return Options(parseArgs(argv))

@@ -1,5 +1,7 @@
 {
     "mode" : "train",
+    "worldTrainPath": "../../worlds/distributedAdaptiveControl.train.wbt",
+    "worldTestPath": "../../worlds/distributedAdaptiveControl.test.wbt",
     "webotsExecutablePath" : "/Applications/Webots.app/webots",
     "changingInfo": [
         {
