@@ -23,7 +23,7 @@ PointLight {
 E-puck {
   translation -0.12000000000000012 0 -0.6200000000000001
   controller "daca"
-  controllerArgs "--args=../../config/controllerArgs.1.json"
+  controllerArgs "--args=../../config/controllerArgs.json"
 }
 SolidBox {
   translation 0.25 0.125 0.25
