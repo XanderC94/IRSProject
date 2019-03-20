@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from libs.log import logger
 
 class Options:
@@ -24,12 +25,12 @@ class Options:
 
         self.modelPath = ""
         if 'modelPath' in opt:
-            self.modelPath = opt['modelPath']
+            self.modelPath = Path(opt['modelPath'])
 
         self.simulationLogPath = ""
         if 'simulationLogPath' in opt:
             self.simulationLogPath = opt['simulationLogPath']
-            
+        
         if 'logging' in opt:
             logger.suppress(not opt['logging'])
 
@@ -44,6 +45,10 @@ class Options:
         self.webotsExecutablePath = ""
         if 'webotsExecutablePath' in opt:
             self.webotMacExecutable = opt['webotsExecutablePath']
+        
+        self.onTerminationQuit = True
+        if 'onTerminationQuit' in opt:
+            self.onTerminationQuit = opt['onTerminationQuit']
 
     @staticmethod
     def fromArgv(argv:list):

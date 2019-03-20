@@ -1,4 +1,4 @@
-import json, datetime, logging, pathlib
+import json, datetime, logging
 from  libs.learningparameters  import LearningParameters 
 from pathlib import Path
 from glob import glob
@@ -28,12 +28,13 @@ def writeJsonOnFile(json: dict, file_path: str):
     with open(file_path, 'w') as outfile:
         json.dump(json, outfile)
 
-def writeModelOnFile(model: TrainedModel, file_path: str):
+def writeModelOnFile(model: TrainedModel, file_path: str or Path):
     with open(file_path, 'w') as outfile:
         json.dump(model.__dict__, outfile, indent=4, default= lambda x: x.__dict__)
 
-def saveTrainedModel(model: TrainedModel, directoryPath: str):
-    file_path = f"{directoryPath}model.{generateFileName('train',model)}.json"
+def saveTrainedModel(model: TrainedModel, directoryPath: str or Path):
+    path = directoryPath if isinstance(directoryPath, Path) else Path(directoryPath)
+    file_path = path / f"model.{generateFileName('train', model)}.json"
     writeModelOnFile(model, file_path)
 
 def recursiveExtractDictWithIntKey(json)-> dict:
@@ -45,7 +46,7 @@ def recursiveExtractDictWithIntKey(json)-> dict:
             connectivities.update({int(K): V})
     return connectivities
 
-def loadJsonFile(path: str) -> dict:
+def loadJsonFile(path: str or Path) -> dict:    
     loaded_json = {}
 
     with open(path, 'r') as json_data:
@@ -53,7 +54,7 @@ def loadJsonFile(path: str) -> dict:
 
     return loaded_json
 
-def loadTrainedModel(path: str) -> TrainedModel:
+def loadTrainedModel(path: str or Path) -> TrainedModel:
     
     loaded_json = loadJsonFile(path)
 
@@ -129,4 +130,3 @@ def getAllFilesIn(target:str or Path, extension:str) -> list:
         lambda f: extension in f.suffix,
         [item for item in path.iterdir()] if path.is_dir() else [path]
     )
-    # return (glob(f"{target}*.{extension}"))
