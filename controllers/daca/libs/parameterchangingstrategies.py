@@ -75,7 +75,7 @@ class ModelChanger(Changer):
     def hasNext(self) -> bool:
         return self._elementPointer < len(self._trainedModels)
 
-    def next(self) -> {TrainedModel}:
+    def next(self) -> TrainedModel:
 
         if self.hasNext():
 
@@ -83,7 +83,7 @@ class ModelChanger(Changer):
             
             self._elementPointer += 1
             
-            return {__retval}
+            return __retval
 
         else: raise Exception('Parameter Changer limit reached!')
 

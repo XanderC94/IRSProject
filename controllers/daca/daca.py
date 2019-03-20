@@ -13,7 +13,7 @@ from libs.motorresponse import wheelVelocity
 import libs.utils as utils
 from libs.log import logger
 from libs.learningparameters import LearningParameters
-from libs.parameterchangingstrategies import ParametersChanger
+from libs.parameterchangingstrategies import ParametersChanger, ModelChanger
 
 opt = Options.fromArgv(sys.argv)
 
@@ -31,16 +31,7 @@ else:
 
 logger.info(f"Using ANN v{opt.version}")
         
-model = None
-
-if not opt.isTrainingModeActive:
-
-    model = utils.loadTrainedModel(opt.modelPath)
-    logger.info(model.parameters)
-    ann.setNetworkParameters(model.parameters)
-    ann.setNetworkConnectivities(model.connectivities)
-
-elif len(opt.parameters) > 0:
+if opt.isTrainingModeActive and len(opt.parameters) > 0:
     ann.setNetworkParameters(opt.parameters)
 
 logger.info(f"params:{ann.getNetworkParams()}")
@@ -119,8 +110,35 @@ def simulation(opt : Options, model: utils.TrainedModel):
 
 #-----------------------------------------------------------------------------------------------------
 
-if opt.changingInfo is None:
+def buildParameterChanger():
+    parametersChanger = None
+    if opt.isTrainingModeActive:
+        parametersChanger = ParametersChanger.fromList(opt.changingInfo, bounded=False)
+    else:
+        modelFiles = utils.getAllFilesIn(f"./{opt.modelPath}", "json")
+        """
+        if opt.changingInfo is not None:
+            parametersChanger = ParametersChanger.fromList(opt.changingInfo, bounded=False)
+            parametersChanger = ParametersChanger(ModelChanger.createFromFilePaths(modelFiles), parametersChanger)
+        else:
+        """
+        parametersChanger = ModelChanger.createFromFilePaths(modelFiles)
+
+    return parametersChanger
+    
+#----------------------------------------------------------------------------------------------------
+model = None
+
+if opt.changingInfo is None and "json" in opt.modelPath:
+   
+    if not opt.isTrainingModeActive:
+        model = utils.loadTrainedModel(opt.modelPath)
+        logger.info(model.parameters)
+        ann.setNetworkParameters(model.parameters)
+        ann.setNetworkConnectivities(model.connectivities)
+
     simulation(opt, model)
+
 else:
 
     initialPositionCoordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
@@ -128,11 +146,20 @@ else:
 
     initialConnectivities = copy.deepcopy(ann.getConnectivities())
 
-    parametersChanger = ParametersChanger.fromList(opt.changingInfo, bounded=False)
+
+    parametersChanger = buildParameterChanger()
+
 
     while parametersChanger.hasNext():
 
-        ann.setNetworkParameters(parametersChanger.next())
+        if not opt.isTrainingModeActive:
+            model = parametersChanger.next()
+            ann.setNetworkParameters(model.parameters)
+            ann.setNetworkConnectivities(model.connectivities)
+        else:
+            ann.setNetworkParameters(parametersChanger.next())
+            
+
 
         simulation(opt, model)
 
