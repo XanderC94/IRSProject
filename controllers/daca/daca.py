@@ -37,21 +37,14 @@ logger.info(f"Using ANN v{opt.version}")
 
 # ------------------------------------------------------------------------------------------------------
 
-def simulation(opt : Options, model: utils.TrainedModel):
-
+def simulation(opt : Options, loghook: lambda info: None):
     # initialize simulation
-    log = utils.SimulationLog(opt.executionMode, opt.runtime)
-    
     nSteps = 0
     maxSteps = int((opt.runtime * 60 * 1000) / epuck.timeStep)
 
     logger.info(f"TIME:{opt.runtime} min | STEP-TIME:{epuck.timeStep} ms => MAX-STEPS: {maxSteps}")
 
-    for _, m in epuck.motors.items():
-        m.device.setPosition(float('+inf'))
-        m.device.setVelocity(0.0)
-
-    #-------------------------------------------------
+    # -------------------------------------------------
 
     nTouches = 0
 
@@ -83,105 +76,68 @@ def simulation(opt : Options, model: utils.TrainedModel):
         if opt.isTrainingModeActive: ann.updateWeights()
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING STUFF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+        
+        
         coordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
         robotPosition = utils.Position.fromTuple(coordinates)
 
-        log.addLogEntry(utils.LogEntry(nSteps, hasTouched, 1 in ann.getLayerOutput(1).values(), robotPosition, nTouches))
+        loghook(
+            utils.LogEntry(nSteps, hasTouched, 1 in ann.getLayerOutput(1).values(), robotPosition, nTouches)
+        )
 
         nSteps += 1
 
         pass
-
-
-    if opt.isTrainingModeActive:
-        model = utils.TrainedModel(opt.version, ann.getNetworkParams(), ann.getConnectivities())
-        utils.saveTrainedModel(model, opt.modelPath)
-
-    log.setModel(model)
-    log.saveTo(opt.simulationLogPath)
     
-    logger.flush()
+    return utils.TrainedModel(
+        opt.version, 
+        ann.getNetworkParams(), 
+        ann.getConnectivities()
+    )
 
-#-----------------------------------------------------------------------------------------------------
-
-def buildChanger():
-    changer = None
-    if opt.isTrainingModeActive:
-        changer = ParametersChanger.fromList(opt.changingInfo, bounded=False)
-    else:
-        modelFiles = utils.getAllFilesIn(f"./{opt.modelPath}", "json")
-        """
-        if opt.changingInfo is not None:
-            parametersChanger = ParametersChanger.fromList(opt.changingInfo, bounded=False)
-            parametersChanger = ParametersChanger(ModelChanger.createFromFilePaths(modelFiles), parametersChanger)
-        else:
-        """
-        changer = ModelChanger.createFromFilePaths(modelFiles)
-
-    return changer
+#----------------------------------------------------------------------------------------------------
     
 #----------------------------------------------------------------------------------------------------
-model = None
 
-if opt.changingInfo is None and opt.isTrainingModeActive:
-   
-    # if not opt.isTrainingModeActive:
-    #     model = utils.loadTrainedModel(opt.modelPath)
-    #     logger.info(model.parameters)
-    #     ann.setNetworkParameters(model.parameters)
-    #     ann.setNetworkConnectivities(model.connectivities)
+if not opt.isTrainingModeActive:
 
-    # elif opt.isTrainingModeActive and len(opt.parameters) > 0:
-    if len(opt.parameters) > 0:
-        ann.setNetworkParameters(opt.parameters)
+    if opt.modelPath.is_dir():
+        raise Exception('Test model is not a file!')
+    elif not ('json' in opt.modelPath.suffix):
+        raise Exception('Test model is not a JSON file!')
 
-    logger.info(f"params:{ann.getNetworkParams()}")
+    model = utils.loadTrainedModel(opt.modelPath)
+    ann.setNetworkParameters(model.parameters)
+    ann.setNetworkConnectivities(model.connectivities)
+
+elif len(opt.parameters) > 0:
+    ann.setNetworkParameters(opt.parameters)
     
-    simulation(opt, model)
+logger.info(f"params:{ann.getNetworkParams()}")
 
-else:
+print(ann.getNetworkParams())
 
-    initialPositionCoordinates = epuck.robot.getSelf().getField("translation").getSFVec3f()
-    initialOrientation = epuck.robot.getSelf().getField("rotation").getSFRotation()
+log = utils.SimulationLog(opt.executionMode, opt.runtime)
 
-    initialConnectivities = copy.deepcopy(ann.getConnectivities())
+model = simulation(opt, loghook = lambda e: log.addLogEntry(e))
 
-    changer = buildChanger()
+if opt.isTrainingModeActive:
+    utils.saveTrainedModel(model, opt.modelPath)
 
-    while changer.hasNext():
+log.setModel(model)
+log.saveTo(opt.simulationLogPath)
 
-        if not opt.isTrainingModeActive:
-            model = changer.next()
-            ann.setNetworkParameters(model.parameters)
-            ann.setNetworkConnectivities(model.connectivities)
-        else:
-            ann.setNetworkParameters(changer.next())
-            ann.setNetworkConnectivities(copy.deepcopy(initialConnectivities))
-            
-        print(ann.getNetworkParams())
-
-        simulation(opt, model)
-
-        # Cleanup code and reset robot fields before next simulation.
-        epuck.motors['left'].device.setVelocity(0.0)
-        epuck.motors['right'].device.setVelocity(0.0)
-        
-        epuck.robot.simulationResetPhysics()
-
-        epuck.robot.getSelf().getField("translation").setSFVec3f(initialPositionCoordinates)
-        epuck.robot.getSelf().getField("rotation").setSFRotation(initialOrientation)
-
-        # epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_PAUSE)
-        # epuck.robot.simulationReset()
-        # epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_FAST)
-        pass
+logger.flush()
 
 # Cleanup code.
 epuck.motors['left'].device.setVelocity(0.0)
 epuck.motors['right'].device.setVelocity(0.0)
 
 epuck.robot.simulationSetMode(epuck.robot.SIMULATION_MODE_PAUSE)
-epuck.robot.simulationReset()
+
+if opt.onTerminationQuit:
+    epuck.robot.simulationQuit(1)
+else:
+    epuck.robot.simulationReset()
 
 # --------------------------------------------------------------------------------------------------------------------------------------

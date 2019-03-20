@@ -65,3 +65,7 @@ motors = sensorArray(ID.motors, timeStep, lambda name: robot.getMotor(name), ena
 dss = sensorArray(ID.distances, timeStep, lambda name: robot.getDistanceSensor(name))
 lss = sensorArray(ID.lights, timeStep, lambda name: robot.getLightSensor(name))
 bumpers = sensorArray(ID.bumpers, timeStep, lambda name: robot.getTouchSensor(name))
+
+for _, m in motors.items():
+    m.device.setPosition(float('+inf'))
+    m.device.setVelocity(0.0)

@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from libs.log import logger
 
 class Options:
@@ -24,12 +25,12 @@ class Options:
 
         self.modelPath = ""
         if 'modelPath' in opt:
-            self.modelPath = opt['modelPath']
+            self.modelPath = Path(opt['modelPath'])
 
         self.simulationLogPath = ""
         if 'simulationLogPath' in opt:
             self.simulationLogPath = opt['simulationLogPath']
-            
+        
         if 'logging' in opt:
             logger.suppress(not opt['logging'])
 
@@ -40,7 +41,11 @@ class Options:
         self.parameters = {}
         if 'parameters' in opt:
             self.parameters = opt['parameters']
-    
+        
+        self.onTerminationQuit = True
+        if 'onTerminationQuit' in opt:
+            self.onTerminationQuit = opt['onTerminationQuit']
+
     @staticmethod
     def fromArgv(argv:list):
         return Options(parseArgs(argv))
