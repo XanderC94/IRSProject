@@ -1,5 +1,6 @@
 {
     "mode" : "train",
+    "versionList": [3,4],
     "worldTrainPath": "../../worlds/distributedAdaptiveControl.train.wbt",
     "worldTestPath": "../../worlds/distributedAdaptiveControl.test.wbt",
     "webotsExecutablePath" : "P:\\amd64\\Webots\\msys64\\mingw64\\bin\\webots.exe",

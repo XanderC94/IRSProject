@@ -1,7 +1,7 @@
 import sys, subprocess
 from libs.argutils import Options
 from libs.utils import *
-from libs.parameterchangingstrategies import *
+from libs.parameterchangingstrategies import ParametersChanger
 
 
 opt = Options.fromArgv(sys.argv)
@@ -13,18 +13,20 @@ webotsBootArguments = [str(opt.webotsExecutablePath), "--mode=fast", "--batch"]
 
 #train mode
 def runTrain():
-    webotsBootArguments.append(opt.worldTrainPath) 
-    controllerArgs["mode"] = "train"
-    changer = ParametersChanger.fromList(opt.changingInfo, bounded=False)
-    while changer.hasNext():
-        parameter = changer.next()
-        for K,V in parameter.items():
-            controllerArgs['parameters'][K] = V
-            
-        print(webotsBootArguments)
-        print(f"Run with parameters {controllerArgs}")
-        writeJsonOnFile(controllerArgs, modifiedControllerArgsFilePath)
-        subprocess.run(webotsBootArguments)
+        webotsBootArguments.append(opt.worldTrainPath) 
+        controllerArgs["mode"] = "train"
+        for version in opt.versionList:
+                controllerArgs['version'] = version
+                print(f"Train neural net version {version}")
+                changer = ParametersChanger.fromList(opt.changingInfo.copy(), bounded=False)
+                while changer.hasNext():
+                        parameter = changer.next()
+                        for K,V in parameter.items():
+                                controllerArgs['parameters'][K] = V
+                        print(webotsBootArguments)
+                        print(f"Run with parameters {controllerArgs}")
+                        writeJsonOnFile(controllerArgs, modifiedControllerArgsFilePath)
+                        subprocess.run(webotsBootArguments)
 
 
 #test mode
