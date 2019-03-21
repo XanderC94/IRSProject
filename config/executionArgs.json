@@ -2,13 +2,25 @@
     "mode" : "train",
     "worldTrainPath": "../../worlds/distributedAdaptiveControl.train.wbt",
     "worldTestPath": "../../worlds/distributedAdaptiveControl.test.wbt",
-    "webotsExecutablePath" : "/Applications/Webots.app/webots",
+    "webotsExecutablePath" : "P:\\amd64\\Webots\\msys64\\mingw64\\bin\\webots.exe",
     "changingInfo": [
         {
             "parameter": "learningRate",
-            "minVal": 0.05,
-            "maxVal": 0.06,
-            "changeStep": 0.01
+            "minVal": 0.035,
+            "maxVal": 0.065,
+            "changeStep": 0.005
+        },
+        {
+            "parameter": "forgetRate",
+            "minVal": 0.6,
+            "maxVal": 0.9,
+            "changeStep": 0.05
+        },
+        {
+            "parameter": "collisionThreshold",
+            "minVal": 0.65,
+            "maxVal": 0.95,
+            "changeStep": 0.05
         }
     ]
 }
