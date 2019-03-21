@@ -10,6 +10,10 @@ class Options:
 
         if 'version' in opt:
             self.version = opt['version']
+        
+        self.versionList = [2]
+        if 'versionList' in opt:
+            self.versionList = opt['versionList']
 
         self.isTrainingModeActive = True
 
