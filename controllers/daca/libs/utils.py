@@ -26,7 +26,7 @@ def generateFileName(mode: str, model: TrainedModel):
 
 def writeJsonOnFile(content: dict, file_path: str):
     with open(file_path, 'w') as outfile:
-        json.dump(content, outfile)
+        json.dump(content, outfile, indent=4)
 
 def writeModelOnFile(model: TrainedModel, file_path: str or Path):
     with open(file_path, 'w') as outfile:
