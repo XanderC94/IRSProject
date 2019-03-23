@@ -1,15 +1,20 @@
 import matplotlib.pyplot as plotter
 from mpl_toolkits.mplot3d import axes3d
+import matplotlib.cm as cmx
+import matplotlib.colors as clrs
 import numpy as np
 
 point_label = lambda x,y,z,t: '(%.2f, %.2f, %.2f), %.2f' % (x, y, float(z).__round__(2), t)
 tuple_label = lambda x,y,z,t: ','.join(['%g' for _ in range(0, len(t))]) % t
+
+__colors = ['#990c41', 'blue', '#228b22', 'orange', '#222222', '#9f1f19', 'violet', 'purple', 'salmon', '#008080']
 
 def scatterplot(xs:list, ys:list, zs:list, ts:list, 
     legend = ['avoidance events', 'collision events'], 
     colors = ['green', 'orange'],
     labels = {'x':'Learning Rate', 'y':'Forget Rate', 'z':'% Avoided Collisions'},
     limits = {'x':[0.03, 0.07],'y':[0.5, 1],'z':[0, 1]},
+    zfilter = 0.9,
     info = point_label):
 
     fig = plotter.figure()
@@ -24,8 +29,10 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
     ax.set_ylim(limits['y'][0], limits['y'][1])
     ax.set_zlim(limits['z'][0], limits['z'][1])
 
+    ax.set_zticks(np.arange(limits['z'][0], limits['z'][1], 0.1))
+
     # -------------------------------------------------------------------------------------------------------
-    
+
     for i in range(0, len(xs)):
         
         x = xs[i]
@@ -36,17 +43,24 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
         color = colors[i]
         label = legend[i]
 
+        cm = plotter.get_cmap('jet')
+        cNorm = clrs.Normalize(vmin=min(z), vmax=max(z))
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+
         # Avoidance events evolution by LearningRate variation
         ax.scatter(
             x, y, z,
             label=label,
-            color=color,
-            depthshade = False
+            # color=color,
+            # s=1.0,
+            depthshade = False,
+            c=scalarMap.to_rgba(z),
+
         )
-        
+
         for _x, _y, _z, _c in zip(x, y, z, t):
-            if (_z > 0.8):
-                ax.text(_x, _y, _z, info(_x, _y, _z, _c), fontsize='xx-small')
+            if (_z > zfilter):
+                ax.text(_x, _y, _z, info(_x, _y, _z, _c), fontsize='x-small')
 
     # ---------------------------------------------------------------------------------------------
 
@@ -56,7 +70,8 @@ def plot2d(xs:list, ys:list, ts:list,
     legend = ['avoidance events'], 
     colors = ['green'],
     labels = {'x':'(LR, FR, CT)', 'y':'% Avoided Collisions'},
-    limits = {'x':[-0.2, 1.2],'y':[-0.2, 1.2]},
+    limits = {'x':[0.0, 1.2],'y':[0.0, 1.05]},
+    yfilter = 0.9,
     info = tuple_label):
 
     fig = plotter.figure()
@@ -69,8 +84,7 @@ def plot2d(xs:list, ys:list, ts:list,
     ax.set_xlim(limits['x'][0], limits['x'][1])
     ax.set_ylim(limits['y'][0], limits['y'][1])
 
-    # ax.set_xticks(np.arange(limits['x'][0], limits['x'][1], 0.05))
-    ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.1))
+    ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.05))
 
     # -------------------------------------------------------------------------------------------------------
     
@@ -91,36 +105,41 @@ def plot2d(xs:list, ys:list, ts:list,
             color=color,
             linewidth= 0.5
         )
-
-        ax.scatter(
-            x, y,
-            color='k'
-        )
         
-        basey = 1.0
-        offy = 0.025
-        offystep = 0.075
-
-        offx = -0.2
-        offxstep = 0.0115
-
+        nextc = 0
+        n = 0
+        
         for _x, _y, _c in zip(x, y, t):
-            if (_y > 0.8):
-                text = ax.annotate(
-                    info(0.0, 0.0, 0.0, _c), 
+            if (_y > yfilter):
+                ax.scatter(
+                    _x, _y,
+                    color=__colors[nextc],
+                    s=1.0,
+                    label=f'{n}: {info(0.0,0.0,0.0,_c)}'
+                )
+
+                ax.annotate(
+                    f'{n}', 
                     xy=(_x, _y),
-                    xytext=(_x + offx, basey + offy),
-                    fontsize='xx-small', 
+                    xytext=(_x + 0.005, _y + 0.005),
+                    fontsize='x-small',
+                    color=__colors[nextc],
+                    fontstyle='oblique',
                     va='top',
                     xycoords='data', 
-                    textcoords='data',
-                    arrowprops=dict(
-                        arrowstyle="->",
-                        color="0.75"
-                    )
+                    textcoords='data'
                 )
-                offy = offy + offystep if basey + offy < limits['y'][1] else 0.025
-                offx = offx + offxstep
+
+                n += 1
+
+            else:
+                ax.scatter(
+                    _x, _y,
+                    color=__colors[nextc],
+                    s=0.75
+                )
+            
+            nextc = (nextc + 1) % len(__colors)
     # ---------------------------------------------------------------------------------------------
     
     return fig

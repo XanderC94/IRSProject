@@ -12,95 +12,53 @@ import numpy as np
 
 # ------------------------------------------------------------------------------------------------------ #
 
-csvPaths = []
-
-__date = lambda: f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
-
 def filterModeAndVersion(df: panda.DataFrame, mode:str, version:int):
     return (df['version'] == version) & (df['mode'] == mode)
 
-def filterAvoidance(df: panda.DataFrame):
-    return (df['event'] == 'Avoidance')
-
-def filterCollision(df: panda.DataFrame):
-    return (df['event'] == 'Collision')
-
 def filterTopStats(df: panda.DataFrame):
-    return (df['std(x)'] > 0.2) & (df['std(z)'] > 0.2) & (df['%events'] > 0.8) & (abs(df['%steps'] - df['%events']) < 0.2)
+    return (df['std(x)'] > 0.2) & (df['std(z)'] > 0.2) & (df['%AvoidSteps'] > 0.8) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
 
-def filterTraps(df: panda.DataFrame):
-    return (df['std(x)'] > 0.2) & (df['std(z)'] > 0.2) & (abs(df['%steps'] - df['%events']) < 0.2)
+def filterFalsePositives(df: panda.DataFrame):
+    return (df['std(x)'] > 0.2) & (df['std(z)'] > 0.2) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
 
 if len(sys.argv) > 1:
 
-    csvDirPath = Path(sys.argv[1])
-    savePath = csvDirPath / 'res'
-
-    if not savePath.exists():
-        savePath.mkdir()
-
-    if not csvDirPath.is_dir():
-        raise Exception('Argument is not a directory.')
+    dataPath = Path(sys.argv[1])
     
     # -------------------------------------------------------------------------------------------------- #
     
-    df = panda.DataFrame()
+    df = panda.DataFrame() 
 
-    for csvPath in csvDirPath.iterdir():
-        if 'csv' in csvPath.suffix:
-            _csv = panda.read_csv(csvPath)
-            df = df.append(_csv, ignore_index=True)
+    if dataPath.is_dir():
+        for csvPath in dataPath.iterdir():
+            if 'csv' in csvPath.suffix:
+                _csv = panda.read_csv(csvPath)
+                df = df.append(_csv, ignore_index=True)
+                
+    elif dataPath.is_file() and 'csv' in dataPath.suffix:
+        df = panda.read_csv(dataPath)
 
-    df = df.drop(['activation', 'collision'], axis = 1)
-    df = df[df['event'] != 'Going By']
-
-    coll = df[filterCollision(df)].sort_values(
-            ['mEventSteps', '%events', 'std(x)', 'std(z)'],
-            ascending = [True, True, False, False]
-        )
-
-    avoid = df[filterAvoidance(df)].sort_values(
-            ['mEventSteps', '%events', 'std(x)', 'std(z)'], 
-            ascending = [True, False, False, False]
-        )
-
-    top_avoid = avoid[filterTopStats(avoid)]
-    top_coll = coll[coll['origin'].isin(top_avoid['origin'])]
+    top = df[filterTopStats(df)].iloc[:, 2:12]
     
-    print(top_coll)
-    print(top_avoid)
-
-    avoid.to_csv(savePath / f'res.avoid.all.{__date()}.csv', index = False)
-    coll.to_csv(savePath / f'res.coll.all.{__date()}.csv', index = False)
+    print(top)
 
     # ------------------------------------------------------------------
 
     versions = df['version'].unique()
     modes = df['mode'].unique()
 
-    plot_columns = ['LR','FR','%events', 'CT']
+    plot_columns = ['LR','FR','%AvoidSteps', 'CT']
     
     for version in versions:
         for mode in modes:
             
             # ------------------------------------------------------------------
 
-            filtColl = filterModeAndVersion(df, mode, version) & filterCollision(df)
-            filtAv = filterModeAndVersion(df, mode, version) & filterAvoidance(df)
-
-            df[filtColl].sort_values(
-                ['std(x)', 'std(z)', '%events'],
-                ascending = [False, False, True]
-            ).to_csv(savePath / f'res.coll.v{version}.{mode}.{__date()}.csv')
-
-            df[filtColl].sort_values(
-                ['std(x)', 'std(z)', '%events'],
-                ascending = [False, False, True]
-            ).to_csv(savePath / f'res.avoid.v{version}.{mode}.{__date()}.csv')
+            filt = filterModeAndVersion(df, mode, version) & filterFalsePositives(df)
 
             # -------------------------------------------------------------------------------
 
-            xa, ya, za, ta = df[filtAv & filterTraps(df)][plot_columns].sort_values(['LR', 'FR'], ascending = [True, True]).T.values
+            xa, ya, za, ta = df[filt][plot_columns].sort_values(['LR', 'FR', 'CT'], ascending = [True, True, True]).T.values
 
             xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
 
@@ -111,11 +69,16 @@ if len(sys.argv) > 1:
             plot = figure.scatterplot(
                 [__x], [ta], [za], [xy], 
                 limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
-                labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided'},
+                labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
                 info=figure.tuple_label
             )
 
-            plot.suptitle(f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]))
+            plot.suptitle(
+                f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
+                    plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
+                )
+            )
+
             plot.canvas.set_window_title(mode)    
 
             plotter.subplots_adjust(
@@ -135,21 +98,23 @@ if len(sys.argv) > 1:
                 [__x], [za], [xyt]
             )
 
-            for xyti in xyt: print(xyti) 
-
-            plot.suptitle(f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]))
+            plot.suptitle(
+                f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (
+                    plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
+                )
+            )
             plot.canvas.set_window_title(mode)    
 
             plotter.subplots_adjust(
                 left=0.05,
-                right=0.97,
+                right=0.99,
                 bottom=0.05,
-                top=0.91,
+                top=0.96,
                 wspace= 0.0,
                 hspace=0.0
             )
 
     # ------------------------------------------------------------------
-    plotter.legend(loc='best')
+    plotter.legend(loc='best', fontsize='x-small')
     plotter.grid()
     plotter.show()
