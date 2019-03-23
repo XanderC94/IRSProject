@@ -1,4 +1,4 @@
-import math, json, os
+import math, json, os, sys
 from pathlib import Path
 import pandas as panda
 
@@ -171,3 +171,19 @@ def extractData(path: Path) -> Path:
     print(f'Saved to: {savePath}', end='\n\n')
 
     return savePath
+
+if len(sys.argv) > 1:
+
+    dataPath = Path(sys.argv[1])
+    savePath = ''
+
+    if dataPath.is_file() and dataPath.suffix == '.json':
+        extractData(dataPath)
+
+    elif dataPath.is_dir():
+
+        savePath = dataPath / 'csv'
+
+        for f in dataPath.iterdir():
+            if f.is_file() and f.suffix == '.json':
+                extractData(f)
