@@ -92,6 +92,8 @@ if __name__== "__main__" and len(sys.argv) > 1:
                 # print(__stats)
                 df = df.append(__stats, ignore_index=True)
 
+    df.index.name = 'index'
+
     df.sort_values(
         [cols.STDX, cols.STDZ, cols.P_AVOID_STEPS],
         ascending=[False, False, False]

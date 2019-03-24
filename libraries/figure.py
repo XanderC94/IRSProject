@@ -30,7 +30,7 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
     ax.set_zlim(limits['z'][0], limits['z'][1])
 
     ax.set_zticks(np.arange(limits['z'][0], limits['z'][1], 0.1))
-
+        
     # -------------------------------------------------------------------------------------------------------
 
     for i in range(0, len(xs)):
@@ -63,6 +63,10 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
                 ax.text(_x, _y, _z, info(_x, _y, _z, _c), fontsize='x-small')
 
     # ---------------------------------------------------------------------------------------------
+    
+    plotter.rc('grid', linestyle=":", color='lightgray')
+    
+    ax.legend(loc='best', fontsize='x-small')
 
     return fig
 
@@ -86,7 +90,7 @@ def plot2d(xs:list, ys:list, ts:list,
     ax.set_ylim(limits['y'][0], limits['y'][1])
 
     ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.05))
-
+    
     # -------------------------------------------------------------------------------------------------------
     
     for i in range(0, len(xs)):
@@ -98,8 +102,6 @@ def plot2d(xs:list, ys:list, ts:list,
 
         color = colors[i]
         label = legend[i]
-
-        plotter.rc('grid', linestyle="--", color='lightgray')
     
         ax.plot(
             x, y,
@@ -111,6 +113,7 @@ def plot2d(xs:list, ys:list, ts:list,
         nextc = 0
         offxy = [[-0.015, 0.005],[0.005, 0.005]]
         nexto = 0
+
         for _id, _x, _y, _c in zip(idx, x, y, t):
             if (_y > yfilter):
                 
@@ -143,6 +146,10 @@ def plot2d(xs:list, ys:list, ts:list,
                 )
             
             nextc = (nextc + 1) % len(__colors)
+
+    ax.grid(linestyle="--", color='lightgray')
+    ax.legend(loc='best', fontsize='x-small')
+
     # ---------------------------------------------------------------------------------------------
     
     return fig

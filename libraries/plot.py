@@ -36,18 +36,18 @@ if len(sys.argv) > 1:
                 df = df.append(_csv, ignore_index=True)
 
     elif dataPath.is_file() and 'csv' in dataPath.suffix:
-        df = panda.read_csv(dataPath, index_col=0)
+        df = panda.read_csv(dataPath)
 
     top = df[filterTopStats(df)].iloc[:, 2:12]
     
-    print(top)
+    # print(top)
 
     # ------------------------------------------------------------------
 
     versions = df['version'].unique()
     modes = df['mode'].unique()
 
-    plot_columns = ['LR','FR','%AvoidSteps', 'CT']
+    plot_columns = ['index','LR','FR','%AvoidSteps', 'CT']
     
     for version in versions:
         for mode in modes:
@@ -60,9 +60,7 @@ if len(sys.argv) > 1:
 
             data = df[filt][plot_columns].sort_values(['LR', 'FR', 'CT'], ascending = [True, True, True])
 
-            xa, ya, za, ta = data.T.values
-
-            idx = data.index.values
+            idx, xa, ya, za, ta = data.T.values
 
             xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
 
@@ -83,7 +81,7 @@ if len(sys.argv) > 1:
 
             plot.canvas.set_window_title(mode)    
 
-            plotter.subplots_adjust(
+            plot.subplots_adjust(
                 left=0.0,
                 right=1.0,
                 bottom=0.0,
@@ -98,7 +96,8 @@ if len(sys.argv) > 1:
 
             plot = figure.plot2d(
                 [__x], [za], [xyt],
-                ids=[idx]
+                ids=[idx],
+                yfilter=0.8
             )
 
             plot.suptitle(
@@ -109,7 +108,7 @@ if len(sys.argv) > 1:
 
             plot.canvas.set_window_title(mode)    
 
-            plotter.subplots_adjust(
+            plot.subplots_adjust(
                 left=0.05,
                 right=0.99,
                 bottom=0.05,
@@ -119,6 +118,5 @@ if len(sys.argv) > 1:
             )
 
     # ------------------------------------------------------------------
-    plotter.legend(loc='best', fontsize='x-small')
-    plotter.grid()
+    
     plotter.show()
