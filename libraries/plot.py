@@ -34,9 +34,9 @@ if len(sys.argv) > 1:
             if 'csv' in csvPath.suffix:
                 _csv = panda.read_csv(csvPath)
                 df = df.append(_csv, ignore_index=True)
-                
+
     elif dataPath.is_file() and 'csv' in dataPath.suffix:
-        df = panda.read_csv(dataPath)
+        df = panda.read_csv(dataPath, index_col=0)
 
     top = df[filterTopStats(df)].iloc[:, 2:12]
     
@@ -58,13 +58,15 @@ if len(sys.argv) > 1:
 
             # -------------------------------------------------------------------------------
 
-            xa, ya, za, ta = df[filt][plot_columns].sort_values(['LR', 'FR', 'CT'], ascending = [True, True, True]).T.values
+            data = df[filt][plot_columns].sort_values(['LR', 'FR', 'CT'], ascending = [True, True, True])
+
+            xa, ya, za, ta = data.T.values
+
+            idx = data.index.values
 
             xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
 
             __x = [float(i / len(xy)) for i in range(0, len(xy))]
-
-            # xc, yc, zc, tc = df[filtColl][plot_columns].T.values
             
             plot = figure.scatterplot(
                 [__x], [ta], [za], [xy], 
@@ -95,7 +97,8 @@ if len(sys.argv) > 1:
             __x = [float(i / len(xyt)) for i in range(0, len(xyt))]
 
             plot = figure.plot2d(
-                [__x], [za], [xyt]
+                [__x], [za], [xyt],
+                ids=[idx]
             )
 
             plot.suptitle(
@@ -103,6 +106,7 @@ if len(sys.argv) > 1:
                     plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
                 )
             )
+
             plot.canvas.set_window_title(mode)    
 
             plotter.subplots_adjust(

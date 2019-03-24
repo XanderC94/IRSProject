@@ -95,4 +95,4 @@ if __name__== "__main__" and len(sys.argv) > 1:
     df.sort_values(
         [cols.STDX, cols.STDZ, cols.P_AVOID_STEPS],
         ascending=[False, False, False]
-    ).to_csv(savePath, index = False)
+    ).to_csv(savePath)

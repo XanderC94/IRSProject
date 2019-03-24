@@ -67,6 +67,7 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
     return fig
 
 def plot2d(xs:list, ys:list, ts:list, 
+    ids:list = [],
     legend = ['avoidance events'], 
     colors = ['green'],
     labels = {'x':'(LR, FR, CT)', 'y':'% Avoided Collisions'},
@@ -93,6 +94,7 @@ def plot2d(xs:list, ys:list, ts:list,
         x = xs[i]
         y = ys[i]
         t = ts[i]
+        idx = ids[i] if (len(ids) >= len(xs)) and len(ids[i]) == len(x) else [i for i in range(0, len(x))]
 
         color = colors[i]
         label = legend[i]
@@ -107,21 +109,22 @@ def plot2d(xs:list, ys:list, ts:list,
         )
         
         nextc = 0
-        n = 0
-        
-        for _x, _y, _c in zip(x, y, t):
+        offxy = [[-0.015, 0.005],[0.005, 0.005]]
+        nexto = 0
+        for _id, _x, _y, _c in zip(idx, x, y, t):
             if (_y > yfilter):
+                
                 ax.scatter(
                     _x, _y,
                     color=__colors[nextc],
                     s=1.0,
-                    label=f'{n}: {info(0.0,0.0,0.0,_c)}'
+                    label=f'{_id}: {info(0.0,0.0,0.0,_c)}'
                 )
 
                 ax.annotate(
-                    f'{n}', 
+                    f'{_id}', 
                     xy=(_x, _y),
-                    xytext=(_x + 0.005, _y + 0.005),
+                    xytext=(_x + offxy[nexto][0], _y + offxy[nexto][1]),
                     fontsize='x-small',
                     color=__colors[nextc],
                     fontstyle='oblique',
@@ -130,7 +133,7 @@ def plot2d(xs:list, ys:list, ts:list,
                     textcoords='data'
                 )
 
-                n += 1
+                nexto = 1 if nexto == 0 else 0
 
             else:
                 ax.scatter(
