@@ -38,7 +38,7 @@ if len(sys.argv) > 1:
     elif dataPath.is_file() and 'csv' in dataPath.suffix:
         df = panda.read_csv(dataPath)
 
-    top = df[filterTopStats(df)].iloc[:, 2:12]
+    # top = df[filterTopStats(df)].iloc[:, 2:12]
     
     # print(top)
 

@@ -17,6 +17,8 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
     zfilter = 0.9,
     info = point_label):
 
+    plotter.rc('grid', linestyle=":", color='lightgray')
+    
     fig = plotter.figure()
     
     ax = fig.add_subplot(1,1,1, projection='3d')
@@ -64,7 +66,6 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
 
     # ---------------------------------------------------------------------------------------------
     
-    plotter.rc('grid', linestyle=":", color='lightgray')
     
     ax.legend(loc='best', fontsize='x-small')
 
@@ -75,7 +76,7 @@ def plot2d(xs:list, ys:list, ts:list,
     legend = ['avoidance events'], 
     colors = ['green'],
     labels = {'x':'(LR, FR, CT)', 'y':'% Avoided Collisions'},
-    limits = {'x':[0.0, 1.2],'y':[0.0, 1.05]},
+    limits = {'x':[0.0, 1.1],'y':[0.0, 1.05]},
     yfilter = 0.9,
     info = tuple_label):
 
@@ -121,11 +122,11 @@ def plot2d(xs:list, ys:list, ts:list,
                     _x, _y,
                     color=__colors[nextc],
                     s=1.0,
-                    label=f'{_id}: {info(0.0,0.0,0.0,_c)}'
+                    label=f'{int(_id)}: {info(0.0,0.0,0.0,_c)}'
                 )
 
                 ax.annotate(
-                    f'{_id}', 
+                    f'{int(_id)}', 
                     xy=(_x, _y),
                     xytext=(_x + offxy[nexto][0], _y + offxy[nexto][1]),
                     fontsize='x-small',
