@@ -3,7 +3,7 @@
     "versionList": [3,4],
     "worldTrainPath": "../../worlds/distributedAdaptiveControl.train.wbt",
     "worldTestPath": "../../worlds/distributedAdaptiveControl.test.wbt",
-    "webotsExecutablePath" : "/Applications/Webots.app/webots",
+    "webotsExecutablePath" : "P:\\amd64\\Webots\\msys64\\mingw64\\bin\\webots.exe",
     "changingInfo": [
         {
             "parameter": "learningRate",

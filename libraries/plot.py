@@ -2,7 +2,7 @@ import math, json, sys, copy, os, csv, datetime
 
 import matplotlib.pyplot as plotter
 from mpl_toolkits.mplot3d import axes3d
-from figure import figure
+import figure as figure
 from data import extractData
 
 from pathlib import Path
@@ -12,99 +12,76 @@ import numpy as np
 
 # ------------------------------------------------------------------------------------------------------ #
 
-csvPaths = []
-
-__date = lambda: f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
-
 def filterModeAndVersion(df: panda.DataFrame, mode:str, version:int):
     return (df['version'] == version) & (df['mode'] == mode)
 
-def filterAvoidance(df: panda.DataFrame):
-    return (df['event'] == 'Avoidance')
+def filterTopStats(df: panda.DataFrame, stdx = 0.2, stdz = 0.2, psteps = 0.8):
+    return (df['std(x)'] > stdx) & (df['std(z)'] > stdz) & (df['%AvoidSteps'] > psteps) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
 
-def filterCollision(df: panda.DataFrame):
-    return (df['event'] == 'Collision')
+def filterFalsePositives(df: panda.DataFrame, stdx = 0.2, stdz = 0.2):
+    return (df['std(x)'] > stdx) & (df['std(z)'] > stdz) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
 
 if len(sys.argv) > 1:
 
     dataPath = Path(sys.argv[1])
-    savePath = ''
-
-    if dataPath.is_file() and dataPath.suffix == '.json':
-        csvPaths.append(extractData(dataPath))
-        savePath = dataPath.parent / 'csv'
-
-    elif dataPath.is_dir():
-
-        savePath = dataPath / 'csv'
-
-        for f in dataPath.iterdir():
-            if f.is_file() and f.suffix == '.json':
-                csvPaths.append(extractData(f))
-        
+    
     # -------------------------------------------------------------------------------------------------- #
     
-    df = panda.DataFrame()
+    df = panda.DataFrame() 
 
-    for csvPath in csvPaths:
-        _csv = panda.read_csv(csvPath)
-        df = df.append(_csv, ignore_index=True)
+    if dataPath.is_dir():
+        for csvPath in dataPath.iterdir():
+            if 'csv' in csvPath.suffix:
+                _csv = panda.read_csv(csvPath)
+                df = df.append(_csv, ignore_index=True)
 
-    df = df.drop(['activation', 'collision'], axis = 1)
-    df = df[df['event'] != 'Going By']
+    elif dataPath.is_file() and 'csv' in dataPath.suffix:
+        df = panda.read_csv(dataPath)
 
-    coll = df[filterCollision(df)].sort_values(
-            ['std(x)', 'std(z)', '%events'],
-            ascending = [False, False, True]
-        )
-
-    avoid = df[filterAvoidance(df)].sort_values(
-            ['std(x)', 'std(z)', '%events'], 
-            ascending = [False, False, False]
-        )
-
-    print(coll)
-    print(avoid)
-
-    avoid.to_csv(savePath / f'res.avoid.all.{__date()}.csv', index = False)
-    coll.to_csv(savePath / f'res.coll.all.{__date()}.csv', index = False)
+    # top = df[filterTopStats(df)].iloc[:, 2:12]
+    
+    # print(top)
 
     # ------------------------------------------------------------------
 
     versions = df['version'].unique()
     modes = df['mode'].unique()
 
-    plot_columns = ['LR','FR','%events', 'CT']
+    plot_columns = ['index','LR','FR','%AvoidSteps', 'CT']
     
     for version in versions:
         for mode in modes:
             
             # ------------------------------------------------------------------
 
-            filtColl = filterModeAndVersion(df, mode, version) & filterCollision(df)
-            filtAv = filterModeAndVersion(df, mode, version) & filterAvoidance(df)
-
-            df[filtColl].sort_values(
-                ['std(x)', 'std(z)', '%events'],
-                ascending = [False, False, True]
-            ).to_csv(savePath / f'res.coll.v{version}.{mode}.{__date()}.csv')
-
-            df[filtColl].sort_values(
-                ['std(x)', 'std(z)', '%events'],
-                ascending = [False, False, True]
-            ).to_csv(savePath / f'res.avoid.v{version}.{mode}.{__date()}.csv')
+            filt = filterModeAndVersion(df, mode, version) & filterFalsePositives(df)
 
             # -------------------------------------------------------------------------------
 
-            xa, ya, za, ta = df[filtAv][plot_columns].T.values
+            data = df[filt][plot_columns].sort_values(['LR', 'FR', 'CT'], ascending = [True, True, True])
 
-            xc, yc, zc, tc = df[filtColl][plot_columns].T.values
+            idx, xa, ya, za, ta = data.T.values
+
+            xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
+
+            __x = [float(i / len(xy)) for i in range(0, len(xy))]
             
-            trainPlot = figure([xa, xc], [ya, yc], [za, zc], [ta, tc])
-            trainPlot.suptitle(f'{mode} Data - Ann v{version} - {plot_columns}')
-            trainPlot.canvas.set_window_title(mode)    
+            plot = figure.scatterplot(
+                [__x], [ta], [za], [xy], 
+                limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
+                labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
+                info=figure.tuple_label
+            )
 
-            plotter.subplots_adjust(
+            plot.suptitle(
+                f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
+                    plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
+                )
+            )
+
+            plot.canvas.set_window_title(mode)    
+
+            plot.subplots_adjust(
                 left=0.0,
                 right=1.0,
                 bottom=0.0,
@@ -113,7 +90,33 @@ if len(sys.argv) > 1:
                 hspace=0.0
             )
 
-    # ------------------------------------------------------------------
+            xyt = [ (xi, yi, ti) for xi, yi, ti in zip(xa, ya, ta)]
 
-    plotter.legend()
+            __x = [float(i / len(xyt)) for i in range(0, len(xyt))]
+
+            plot = figure.plot2d(
+                [__x], [za], [xyt],
+                ids=[idx],
+                yfilter=0.8
+            )
+
+            plot.suptitle(
+                f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (
+                    plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
+                )
+            )
+
+            plot.canvas.set_window_title(mode)    
+
+            plot.subplots_adjust(
+                left=0.05,
+                right=0.99,
+                bottom=0.05,
+                top=0.96,
+                wspace= 0.0,
+                hspace=0.0
+            )
+
+    # ------------------------------------------------------------------
+    
     plotter.show()

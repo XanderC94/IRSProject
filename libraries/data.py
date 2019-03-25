@@ -1,6 +1,7 @@
-import math, json, os
+import math, json, sys
 from pathlib import Path
 import pandas as panda
+import columns as cols
 
 def eventMatcher(x) -> str:
 
@@ -15,7 +16,7 @@ def eventMatcher(x) -> str:
     else:
         return "Error"
 
-def extractData(path: Path) -> Path:
+def extractData(path: Path, save = False) -> (Path or None, panda.DataFrame):
 
     data = {}
 
@@ -60,24 +61,15 @@ def extractData(path: Path) -> Path:
     maxz = df['zc'].abs().max()
 
     df['xc'] += maxx
-    # df['yc'] += df['yc'].max()
     df['zc'] += maxz
     
-    # print(f'MAX(x):{maxx}, MAX(z):{maxz}')
-
     df.drop(['position'], axis=1)
 
     route = df[['xc', 'zc']]
 
     dx = route['xc'].std(axis=0)
-    # dy = route['yc'].std(axis=0)
     dz = route['zc'].std(axis=0)
     
-    # cxz = route.cov()
-
-    # print(f'STD(x):{dx}, STD(z):{dz}')
-    # print(f'COV(x, z):{cxz}')
-
     # NOTE #1: 
     # Can we say that continous activations may refere to a single obstacle avoidance/collision?
     # Interval discern avoidance of a new obstacle.
@@ -87,8 +79,6 @@ def extractData(path: Path) -> Path:
         df[['collision', 'activation', 'nStep', 'nEvent']]
             .groupby(['nEvent', 'collision', 'activation'], as_index = False).count()
     )
-
-    # print(cdf)
 
     # NOTE #2:
     # Groups data by evidencing the following events
@@ -103,13 +93,13 @@ def extractData(path: Path) -> Path:
         .rename(columns = {'nEvent':'nEvents', 'nStep':'nSteps'})
     )
     
-    stats['event'] = stats[['collision', 'activation']].apply(lambda x: eventMatcher(x), axis = 1)
+    stats[cols.EVENT] = stats[['collision', 'activation']].apply(lambda x: eventMatcher(x), axis = 1)
 
-    stats['version'] = model['version']
-    stats['mode'] = data['mode']
+    stats[cols.VERSION] = model['version']
+    stats[cols.MODE] = data['mode']
 
     # Reodering columns
-    stats = stats[['version', 'mode', 'event', 'collision', 'activation', 'nSteps', 'nEvents']]
+    stats = stats[[cols.VERSION, cols.MODE, cols.EVENT, cols.ACTIVATION, cols.COLLISION, cols.N_STEPS, cols.N_EVENTS]]
     
     # Data statistics:
     
@@ -117,57 +107,76 @@ def extractData(path: Path) -> Path:
     # This value display, in the case of collisions and avoidances, 
     # the mean number of steps necessary for the robot to 
     # either end a collision (after colliding) or avoid an obstacle
-    stats['mEventSteps'] = stats['nSteps'] / stats['nEvents']
+    stats[cols.MEAN_EVENT_STEPS] = stats[cols.N_STEPS] / stats[cols.N_EVENTS]
     
-    # # %overallSteps = % of steps related to the total number of steps done
+    # # %OverallSteps = % of steps related to the total number of steps done
     # # This value greatly depends -- indirectly -- on the composition (difficulty and variance) of the environment
     # # Since considere ALL the steps and not only the significative ones (Collisions and Avoidances)
-    # stats['%overallSteps'] = stats['nSteps'] / stats['nSteps'].sum()
+    # stats['%OverallSteps'] = stats['nSteps'] / stats['nSteps'].sum()
     
-    # %steps = % of steps related to the number of positive activations of the neurons in the collision layer 
+    # %Steps = % of steps related to the number of positive activations of the neurons in the collision layer 
     # This value exteem the goodness of the learning in relation to the number of SINGLE activations 
     # that is either if they are related to the same obstacle
-    stats['%steps'] = stats[stats['activation'] == True]['nSteps'] / stats['nSteps'][stats['activation'] == True].sum()
-    stats.loc[stats['activation'] == False, ['%steps']] = (
-        stats[stats['activation'] == False]['nSteps'] / stats[stats['activation'] == False]['nSteps'].sum()
+    stats[cols.P_STEPS] = stats[stats[cols.ACTIVATION] == True][cols.N_STEPS] / stats[cols.N_STEPS][stats[cols.ACTIVATION] == True].sum()
+    stats.loc[stats[cols.ACTIVATION] == False, [cols.P_STEPS]] = (
+        stats[stats[cols.ACTIVATION] == False][cols.N_STEPS] / stats[stats[cols.ACTIVATION] == False][cols.N_STEPS].sum()
     )
     
-    # # %overallEvents = % of events {'Collision', 'Avoidance', 'Going By'} related to the total number of events
+    # # %OverallEvents = % of events {'Collision', 'Avoidance', 'Going By'} related to the total number of events
     # # This Value as well depends -- indirectly -- on the composition (difficulty and variance) of the environment
     # # Since considere ALL the events and not only the significative ones (Collisions and Avoidances)
-    # stats['%overallEvents'] = stats['nEvents'] / stats['nEvents'].sum()
+    # stats['%OverallEvents'] = stats['nEvents'] / stats['nEvents'].sum()
     
-    # %events = % of events related to the number of positive activations of the neurons in the collision layer 
+    # %Events = % of events related to the number of positive activations of the neurons in the collision layer 
     # This value exteem the goodness of the learning in relation to the number of (grouped) SEQUENTIAL (see NOTE #1) activations 
     # that is, sequential activation are seen as single events related to a collision or avoidance of a single obstacle
-    stats['%events'] = stats[stats['activation'] == True]['nEvents'] / stats[stats['activation'] == True]['nEvents'].sum()
-    stats.loc[stats['activation'] == False, ['%events']] = (
-        stats['nEvents'][stats['activation'] == False] / stats['nEvents'][stats['activation'] == False].sum()
+    stats[cols.P_EVENTS] = stats[stats[cols.ACTIVATION] == True][cols.N_EVENTS] / stats[stats[cols.ACTIVATION] == True][cols.N_EVENTS].sum()
+    stats.loc[stats[cols.ACTIVATION] == False, [cols.P_EVENTS]] = (
+        stats[cols.N_EVENTS][stats[cols.ACTIVATION] == False] / stats[cols.N_EVENTS][stats[cols.ACTIVATION] == False].sum()
     )
     
     # Dipping some useful data
-    stats['std(x)'] = dx
-    stats['std(z)'] = dz
-    stats['max(x)'] = maxx
-    stats['max(z)'] = maxz
+    stats[cols.STDX] = dx
+    stats[cols.STDZ] = dz
+    stats[cols.MAXX] = maxx
+    stats[cols.MAXZ] = maxz
 
-    stats['LR'] = model['parameters']['learningRate']
-    stats['FR'] = model['parameters']['forgetRate']
-    stats['CT'] = model['parameters']['collisionThreshold']
-    stats['RT'] = model['parameters']['reverseThreshold']
-    stats['MT'] = model['parameters']['motorThreshold']
+    stats[cols.LR] = model['parameters']['learningRate']
+    stats[cols.FR] = model['parameters']['forgetRate']
+    stats[cols.CT] = model['parameters']['collisionThreshold']
+    stats[cols.RT] = model['parameters']['reverseThreshold']
+    stats[cols.MT] = model['parameters']['motorThreshold']
 
-    stats['origin'] = path.name
+    stats[cols.ORIGIN] = path.name
     
-    # print(stats, end='\n\n')
+    print(f'Completed: {path.name}')
     
-    if not (path.parent / 'csv').is_dir():
-        (path.parent / 'csv').mkdir()
-    
-    savePath = (path.parent / 'csv' / path.name).with_suffix('.csv')
+    savePath = None
 
-    stats.sort_values(['event']).to_csv(savePath, index = False)
+    if save:
+        if not (path.parent / 'csv').is_dir():
+            (path.parent / 'csv').mkdir()
 
-    print(f'Saved to: {savePath}', end='\n\n')
+        savePath = (path.parent / 'csv' / path.name).with_suffix('.csv')
+  
+        stats.to_csv(savePath, index = False)
 
-    return savePath
+        print(f'Saved to: {savePath}')
+
+    # print(stats)
+
+    return (savePath, stats)
+
+# ---------------------------------------------------------------------------------------------------------
+if __name__== "__main__" and len(sys.argv) > 1:
+
+    dataPath = Path(sys.argv[1])
+   
+    if dataPath.is_file() and dataPath.suffix == '.json':
+        extractData(dataPath, save=True)
+
+    elif dataPath.is_dir():
+
+        for f in dataPath.iterdir():
+            if f.is_file() and f.suffix == '.json':
+                extractData(f, save=True)
