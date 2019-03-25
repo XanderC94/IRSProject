@@ -21,8 +21,8 @@ PROTO E-puckBumper [
         type "bumper"
         locked TRUE
         lookupTable [
-            0 0 0.001,
-            1.0 1 0.001
+            0 0 0.01,
+            1.0 1 0.01
         ]
         children [
           Shape { # sensor

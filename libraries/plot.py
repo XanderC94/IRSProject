@@ -15,11 +15,11 @@ import numpy as np
 def filterModeAndVersion(df: panda.DataFrame, mode:str, version:int):
     return (df['version'] == version) & (df['mode'] == mode)
 
-def filterTopStats(df: panda.DataFrame):
-    return (df['std(x)'] > 0.2) & (df['std(z)'] > 0.2) & (df['%AvoidSteps'] > 0.8) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
+def filterTopStats(df: panda.DataFrame, stdx = 0.2, stdz = 0.2, psteps = 0.8):
+    return (df['std(x)'] > stdx) & (df['std(z)'] > stdz) & (df['%AvoidSteps'] > psteps) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
 
-def filterFalsePositives(df: panda.DataFrame):
-    return (df['std(x)'] > 0.2) & (df['std(z)'] > 0.2) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
+def filterFalsePositives(df: panda.DataFrame, stdx = 0.2, stdz = 0.2):
+    return (df['std(x)'] > stdx) & (df['std(z)'] > stdz) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
 
 if len(sys.argv) > 1:
 
