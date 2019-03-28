@@ -7,7 +7,42 @@ import numpy as np
 point_label = lambda x,y,z,t: '(%.2f, %.2f, %.2f), %.2f' % (x, y, float(z).__round__(2), t)
 tuple_label = lambda x,y,z,t: ','.join(['%g' for _ in range(0, len(t))]) % t
 
-__colors = ['#990c41', 'blue', '#228b22', 'orange', '#222222', '#9f1f19', 'violet', 'purple', 'salmon', '#008080']
+pcolors = [   
+    '#000000',
+    '#200630',
+    '#400c60',
+    '#601390',
+    '#8019c0',
+    '#a020f0',
+    '#b34cf3',
+    '#c679f6',
+    '#d9a5f9'
+]
+
+ycolors = [
+    '#f9d9a5',
+    '#f6c679',
+    '#f3b34c',
+    '#f0a020',
+    '#c08019',
+    '#906013',
+    '#60400c',
+    '#302006'
+]
+
+gcolors = [
+    '#a5f9d9',
+    '#79f6c6',
+    '#4cf3b3',
+    '#20f0a0',
+    '#19c080',
+    '#139060',
+    '#0c6040',
+    '#063020',
+    '#000000',
+]
+
+__colors =  ycolors + pcolors + gcolors
 
 def scatterplot(xs:list, ys:list, zs:list, ts:list, 
     legend = ['avoidance events', 'collision events'], 
@@ -152,6 +187,76 @@ def plot2d(xs:list, ys:list, ts:list,
 
     ax.grid(linestyle="--", which= 'major', color='lightgray')
     ax.grid(linestyle=":", which= 'minor', color='lightgray')
+    ax.legend(loc='best', fontsize='x-small')
+
+    # ---------------------------------------------------------------------------------------------
+    
+    return fig
+
+def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
+        legend = ['avoidance events'], 
+        labels = {'x':'(LR, FR, CT)', 'y':'% Avoided Collisions'},
+        limits = {'x':[0.0, 1.1],'y':[0.0, 1.05]},
+        hfilter = 0.8,
+        info = tuple_label):
+
+    fig = plotter.figure()
+    
+    ax = fig.add_subplot(1,1,1)
+    
+    ax.set_xlabel(labels['x'])
+    ax.set_ylabel(labels['y'])
+
+    ax.set_xlim(limits['x'][0], limits['x'][1])
+    ax.set_ylim(limits['y'][0], limits['y'][1])
+
+    ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.1))
+
+    chopsticks = list()
+    dumbsticks = list()
+    for i, t in zip(xs, ts):
+        if not (t[0] in dumbsticks):
+            dumbsticks.append(t[0])
+            chopsticks.append(i)
+
+    ax.set_xticks(chopsticks)
+    ax.set_xticklabels(dumbsticks)
+    
+    ax.minorticks_on()
+
+    ax.grid(b= True, linestyle="--", which= 'major', color='darkgray')
+    ax.grid(b= True, linestyle=":", which= 'minor', color='lightgray')
+
+    # -------------------------------------------------------------------------------------------------------
+        
+    nextc = 0
+    offxy = [-1, 0.015]
+
+
+
+    for i, x, h, w, t in zip(ids, xs, hs, ws, ts):
+
+        ax.bar(
+            x, h, w,
+            label=f'{int(i)}:{info(0.0,0.0,0.0, t)}' if h > hfilter else None,
+            color=__colors[nextc]
+        )
+
+        if h > hfilter:
+            ax.annotate(
+                f'{int(i)}', 
+                xy=(x, h),
+                xytext=(x + offxy[0], h + offxy[1]),
+                fontsize='x-small',
+                color=__colors[nextc],
+                fontstyle='oblique',
+                va='top',
+                xycoords='data', 
+                textcoords='data'
+            )
+        
+        nextc = (nextc + 1) % len(__colors)
+
     ax.legend(loc='best', fontsize='x-small')
 
     # ---------------------------------------------------------------------------------------------

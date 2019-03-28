@@ -29,7 +29,7 @@ if len(sys.argv) > 1:
     elif dataPath.is_file() and 'csv' in dataPath.suffix:
         df = panda.read_csv(dataPath)
 
-    plot_columns = ['index','LR','FR','%AvoidSteps', 'CT']
+    plot_columns = ['index','LR','FR','CT', '%AvoidSteps', 'mAvoidSteps']
 
     # ------------------------------------------------------------------
 
@@ -60,24 +60,24 @@ if len(sys.argv) > 1:
 
             if len(data) > 0:
 
-                idx, xa, ya, za, ta = data.T.values
+                idx, lr, fr, ct, hs, ms = data.T.values
 
-                xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
-                
-                
-                xyt = [ (xi, yi, ti) for xi, yi, ti in zip(xa, ya, ta)]
+                ts = [(xi, yi, ti) for xi, yi, ti in zip(lr, fr, ct)]
 
-                __x = [float(i / len(xyt)) for i in range(0, len(xyt))]
+                wmax = max(ms) * 1.1
+                ws = [5*(1.0 - float(wi / wmax)) for wi in ms]
 
-                plot = figure.plot2d(
-                    [__x], [za], [xyt],
-                    ids=[idx],
-                    yfilter=0.8
+                xs = [(i + w) * 1.2 for i, w in zip(idx, np.cumsum(ws))]
+
+                plot = figure.stackedbars2d(
+                    xs, hs, ws, ts, idx,
+                    limits={'x':[min(xs), max(xs) * 1.1],'y':[0, 1.05]},
+                    hfilter=0.8
                 )
 
                 plot.suptitle(
                     f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (
-                        plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                        plot_columns[1], plot_columns[2], plot_columns[3], plot_columns[4]
                     )
                 )
 
@@ -93,11 +93,12 @@ if len(sys.argv) > 1:
                 )
 
                 if not (mode == 'test'):
+                    xy = [ (xi, yi) for xi, yi in zip(lr, fr)]
 
-                    __x = [float(i / len(xy)) for i in range(0, len(xy))]
+                    x = [float(i / len(xy)) for i in range(0, len(xy))]
 
                     plot = figure.scatterplot(
-                        [__x], [ta], [za], [xy],
+                        [x], [ct], [hs], [xy],
                         legend=['controller model'],
                         limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
                         labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
@@ -106,7 +107,7 @@ if len(sys.argv) > 1:
 
                     plot.suptitle(
                         f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
-                            plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                            plot_columns[1], plot_columns[2], plot_columns[3], plot_columns[4]
                         )
                     )
 
