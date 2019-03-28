@@ -47,15 +47,17 @@ def synthesis(df: panda.DataFrame) -> panda.DataFrame:
 
 # -------------------------------------------------------------------------
 
-def __fillSynthData(path, getModel, df, models):
+def __getSynthData(path, getModel) -> (panda.DataFrame, dict):
 
     __path, __stats, __model = extractData(path, getModel=getModel)
     __stats = synthesis(__stats)
 
-    if len(__stats[(__stats['mode'] == 'train') & filterTopStats(__stats)]) > 0:
-        models.append(__model)
-
-    df = df.append(__stats, ignore_index=True)
+    if len(__model) > 0 and len(__stats[(__stats['mode'] == 'train') & filterTopStats(__stats)]) > 0:
+        print(f'Added model for: {path.name}')
+        return (__stats, __model)
+    else:
+        return (__stats, {})
+    
 
 if __name__== "__main__" and len(sys.argv) > 1:
 
@@ -72,7 +74,9 @@ if __name__== "__main__" and len(sys.argv) > 1:
         
         saveDir = dataPath.parent / 'csv'
 
-        __fillSynthData(dataPath, getModel, df, models)
+        stats, model = __getSynthData(dataPath, getModel)
+        df = df.append(stats, ignore_index=True)
+        if len(model) > 0: models.append(model)
 
     elif dataPath.is_dir():
 
@@ -80,7 +84,9 @@ if __name__== "__main__" and len(sys.argv) > 1:
 
         for f in dataPath.iterdir():
             if f.is_file() and f.suffix == '.json':
-                __fillSynthData(f, getModel, df, models)
+                stats, model = __getSynthData(f, getModel)
+                df = df.append(stats, ignore_index=True)
+                if len(model) > 0: models.append(model)
 
     # --------------------------------------------------------------------------
 
