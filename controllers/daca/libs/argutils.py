@@ -1,6 +1,7 @@
-import json, sys
+import json, sys, json
 from pathlib import Path
 from libs.log import logger
+import libs.utils as utils
 
 class Options:
 
@@ -15,21 +16,26 @@ class Options:
         if 'versionList' in opt:
             self.versionList = opt['versionList']
 
-        self.isTrainingModeActive = True
-
-        self.executionMode = "train"
-        if 'mode' in opt:
-            self.executionMode = opt['mode']
-            if opt['mode'].lower() == 'test':
-                self.isTrainingModeActive = False
-                
         self.runtime = -1 # minutes, -1 -> Infinite
         if 'time' in opt:
             self.runtime = opt['time']
 
-        self.modelPath = ""
+        self.modelPath = Path('')
         if 'modelPath' in opt:
             self.modelPath = Path(opt['modelPath'])
+        
+        self.isTrainingModeActive = True
+
+        self.executionMode = "train"
+        self.trainedModel = None
+        if 'mode' in opt:
+            self.executionMode = opt['mode']
+            if 'test' in opt['mode'].lower():
+                self.isTrainingModeActive = False
+
+                if not self.modelPath.is_dir():
+                    self.trainedModel = utils.loadTrainedModel(self.modelPath)
+                    self.version = self.trainedModel.version
 
         self.simulationLogPath = ""
         if 'simulationLogPath' in opt:

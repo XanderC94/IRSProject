@@ -124,7 +124,7 @@ def plot2d(xs:list, ys:list, ts:list,
                     _x, _y,
                     color=__colors[nextc],
                     s=1.0,
-                    label=f'{int(_id)}: {info(0.0,0.0,0.0,_c)}'
+                    label=f'{int(_id)}:{info(0.0,0.0,0.0,_c)}'
                 )
 
                 ax.annotate(

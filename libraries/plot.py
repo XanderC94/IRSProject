@@ -63,34 +63,8 @@ if len(sys.argv) > 1:
                 idx, xa, ya, za, ta = data.T.values
 
                 xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
-
-                __x = [float(i / len(xy)) for i in range(0, len(xy))]
                 
-                plot = figure.scatterplot(
-                    [__x], [ta], [za], [xy],
-                    legend=['controller model'],
-                    limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
-                    labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
-                    info=figure.tuple_label
-                )
-
-                plot.suptitle(
-                    f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
-                        plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
-                    )
-                )
-
-                plot.canvas.set_window_title(mode)
-
-                plot.subplots_adjust(
-                    left=0.0,
-                    right=1.0,
-                    bottom=0.0,
-                    top=1.0,
-                    wspace= 0.0,
-                    hspace=0.0
-                )
-
+                
                 xyt = [ (xi, yi, ti) for xi, yi, ti in zip(xa, ya, ta)]
 
                 __x = [float(i / len(xyt)) for i in range(0, len(xyt))]
@@ -107,7 +81,7 @@ if len(sys.argv) > 1:
                     )
                 )
 
-                plot.canvas.set_window_title(mode)    
+                plot.canvas.set_window_title(f'{mode}.annv{version}.2d')    
 
                 plot.subplots_adjust(
                     left=0.05,
@@ -117,6 +91,35 @@ if len(sys.argv) > 1:
                     wspace= 0.0,
                     hspace=0.0
                 )
+
+                if not (mode == 'test'):
+
+                    __x = [float(i / len(xy)) for i in range(0, len(xy))]
+
+                    plot = figure.scatterplot(
+                        [__x], [ta], [za], [xy],
+                        legend=['controller model'],
+                        limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
+                        labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
+                        info=figure.tuple_label
+                    )
+
+                    plot.suptitle(
+                        f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
+                            plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                        )
+                    )
+
+                    plot.canvas.set_window_title(f'{mode}.annv{version}.3d')
+
+                    plot.subplots_adjust(
+                        left=0.0,
+                        right=1.0,
+                        bottom=0.0,
+                        top=1.0,
+                        wspace= 0.0,
+                        hspace=0.0
+                    )
 
         df.drop(df[(df['version'] == version)].index, inplace=True)
     # ------------------------------------------------------------------

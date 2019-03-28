@@ -33,14 +33,14 @@ logger.info(f"Using ANN v{opt.version}")
 
 #-------------------------------------------
 
-if not opt.isTrainingModeActive:
+if not opt.isTrainingModeActive and not (opt.trainedModel is None):
 
-    if opt.modelPath.is_dir():
-        raise Exception('Test model is not a file!')
-    elif not ('json' in opt.modelPath.suffix):
-        raise Exception('Test model is not a JSON file!')
+    # if opt.modelPath.is_dir():
+    #     raise Exception('Test model is not a file!')
+    # elif not ('json' in opt.modelPath.suffix):
+    #     raise Exception('Test model is not a JSON file!')
 
-    model = utils.loadTrainedModel(opt.modelPath)
+    model = opt.trainedModel
     ann.setNetworkParameters(model.parameters)
     ann.setNetworkConnectivities(model.connectivities)
 
@@ -49,7 +49,7 @@ elif len(opt.parameters) > 0:
     
 logger.info(f"params:{ann.getNetworkParams()}")
 
-print(ann.getNetworkParams())
+print(opt.version, ann.getNetworkParams())
 
 log = utils.SimulationLog(opt.executionMode, opt.runtime)
 
