@@ -4,21 +4,7 @@ import pandas as panda
 import columns as cols
 from data import extractData
 
-def fillZero(df:panda.DataFrame, event: str):
-    
-    df[cols._nSteps(event)] = 0
-    df[cols._nEvents(event)] = 0
-    df[cols._mEventSteps(event)] = 0.0
-    df[cols._pSteps(event)] = 0.0
-    df[cols._pEvents(event)] = 0.0
-
-    return df
-
-def filterAvoidance(df: panda.DataFrame):
-    return (df['event'] == 'Avoidance')
-
-def filterCollision(df: panda.DataFrame):
-    return (df['event'] == 'Collision')
+from utils import *
 
 def synthesis(df: panda.DataFrame) -> panda.DataFrame:
 
@@ -52,7 +38,6 @@ def synthesis(df: panda.DataFrame) -> panda.DataFrame:
 
     if len(avoid) == 0:
         synth = fillZero(coll, 'Avoid')
-        
     elif len(coll) == 0:
         synth = fillZero(avoid, 'Collide')
     else:
@@ -62,39 +47,74 @@ def synthesis(df: panda.DataFrame) -> panda.DataFrame:
 
 # -------------------------------------------------------------------------
 
+def __fillSynthData(path, getModel, df, models):
+
+    __path, __stats, __model = extractData(path, getModel=getModel)
+    __stats = synthesis(__stats)
+
+    if len(__stats[(__stats['mode'] == 'train') & filterTopStats(__stats)]) > 0:
+        models.append(__model)
+
+    df = df.append(__stats, ignore_index=True)
+
 if __name__== "__main__" and len(sys.argv) > 1:
 
-    __date = lambda: f'{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}'
-
     dataPath = Path(sys.argv[1])
-    savePath = ''
+    getModel = True if len(sys.argv) > 2 and '-model' in sys.argv[2] else False
+    saveDir = Path('')
+
+    print(f'path:{dataPath}, save-model:{getModel}')
 
     df = panda.DataFrame()
+    models = []
 
     if dataPath.is_file() and dataPath.suffix == '.json':
-        __path, __stats = extractData(dataPath)
-        __stats = synthesis(__stats)
-        df = df.append(__stats, ignore_index=True)
+        
+        saveDir = dataPath.parent / 'csv'
+
+        __fillSynthData(dataPath, getModel, df, models)
 
     elif dataPath.is_dir():
 
         saveDir = dataPath / 'csv'
 
-        if not saveDir.exists():
-            saveDir.mkdir()
-
-        savePath = saveDir / f'res.synthetic.all.{__date()}.csv'
-
         for f in dataPath.iterdir():
             if f.is_file() and f.suffix == '.json':
-                __path, __stats = extractData(f)
-                __stats = synthesis(__stats)
-                # print(__stats)
-                df = df.append(__stats, ignore_index=True)
+                __fillSynthData(f, getModel, df, models)
+
+    # --------------------------------------------------------------------------
+
+    if not saveDir.exists():
+        saveDir.mkdir()
+
+    modelsDir = saveDir / 'models'
+
+    if not modelsDir.exists():
+        modelsDir.mkdir()
+
+    # ---------------------------------------------------------------------------
 
     df.index.name = 'index'
+
+    plot_columns = ['index', 'LR', 'FR', '%AvoidSteps', 'CT']
+
+    savePath = saveDir / f'res.synthetic.all.{getDate()}.csv'
 
     df.sort_values(
         [cols.STDX, cols.STDZ, cols.P_AVOID_STEPS],
         ascending=[False, False, False]
     ).to_csv(savePath)
+
+    # ---------------------------------------------------------------------------
+
+    for model in models:
+        if len(model) > 0:
+            lr = model['parameters']['learningRate']
+            fr = model['parameters']['forgetRate']
+            ct = model['parameters']['collisionThreshold']
+
+            savePath = modelsDir / f'model.to.test.lr{lr}.fr{fr}.ct{ct}.{getDate()}.json'
+            with open(savePath, mode='w') as savefile:
+                json.dump(model,savefile, indent=4)
+            
+            print(f'Saved model to {savePath}')

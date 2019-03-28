@@ -16,7 +16,7 @@ def eventMatcher(x) -> str:
     else:
         return "Error"
 
-def extractData(path: Path, save = False) -> (Path or None, panda.DataFrame):
+def extractData(path: Path, saveLog = False, getModel = False) -> (Path or None, panda.DataFrame, dict):
 
     data = {}
 
@@ -57,11 +57,11 @@ def extractData(path: Path, save = False) -> (Path or None, panda.DataFrame):
     df['xc'] = df['position'].apply(lambda p: p['X'])
     df['zc'] = df['position'].apply(lambda p: p['Z'])
 
-    maxx = df['xc'].abs().max()
-    maxz = df['zc'].abs().max()
+    # maxx = df[df['xc'] < 0.0]['xc'].abs().max()
+    # maxz = df[df['zc'] < 0.0]['zc'].abs().max()
 
-    df['xc'] += maxx
-    df['zc'] += maxz
+    # df['xc'] += maxx
+    # df['zc'] += maxz
     
     df.drop(['position'], axis=1)
 
@@ -138,8 +138,8 @@ def extractData(path: Path, save = False) -> (Path or None, panda.DataFrame):
     # Dipping some useful data
     stats[cols.STDX] = dx
     stats[cols.STDZ] = dz
-    stats[cols.MAXX] = maxx
-    stats[cols.MAXZ] = maxz
+    # stats[cols.MAXX] = maxx
+    # stats[cols.MAXZ] = maxz
 
     stats[cols.LR] = model['parameters']['learningRate']
     stats[cols.FR] = model['parameters']['forgetRate']
@@ -147,13 +147,13 @@ def extractData(path: Path, save = False) -> (Path or None, panda.DataFrame):
     stats[cols.RT] = model['parameters']['reverseThreshold']
     stats[cols.MT] = model['parameters']['motorThreshold']
 
-    stats[cols.ORIGIN] = path.name
+    stats[cols.ORIGIN] = str(path.absolute)
     
     print(f'Completed: {path.name}')
     
     savePath = None
 
-    if save:
+    if saveLog:
         if not (path.parent / 'csv').is_dir():
             (path.parent / 'csv').mkdir()
 
@@ -165,7 +165,7 @@ def extractData(path: Path, save = False) -> (Path or None, panda.DataFrame):
 
     # print(stats)
 
-    return (savePath, stats)
+    return (savePath, stats, model if getModel else {})
 
 # ---------------------------------------------------------------------------------------------------------
 if __name__== "__main__" and len(sys.argv) > 1:
@@ -173,10 +173,10 @@ if __name__== "__main__" and len(sys.argv) > 1:
     dataPath = Path(sys.argv[1])
    
     if dataPath.is_file() and dataPath.suffix == '.json':
-        extractData(dataPath, save=True)
+        spath , stats, model = extractData(dataPath, saveLog=True)
 
     elif dataPath.is_dir():
 
         for f in dataPath.iterdir():
             if f.is_file() and f.suffix == '.json':
-                extractData(f, save=True)
+                spath , stats, model = extractData(f, saveLog=True)

@@ -81,7 +81,7 @@ def parseArgs(argv):
     opt = {}
 
     if 'args' in args:
-        with open(args['args'], "r") as config:
+        with open(Path(args['args']), "r") as config:
             opt = json.load(config)
 
     return opt

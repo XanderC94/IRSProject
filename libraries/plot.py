@@ -3,28 +3,19 @@ import math, json, sys, copy, os, csv, datetime
 import matplotlib.pyplot as plotter
 from mpl_toolkits.mplot3d import axes3d
 import figure as figure
-from data import extractData
 
 from pathlib import Path
+
+from utils import *
 
 import pandas as panda
 import numpy as np
 
 # ------------------------------------------------------------------------------------------------------ #
 
-def filterModeAndVersion(df: panda.DataFrame, mode:str, version:int):
-    return (df['version'] == version) & (df['mode'] == mode)
-
-def filterTopStats(df: panda.DataFrame, stdx = 0.2, stdz = 0.2, psteps = 0.8):
-    return (df['std(x)'] > stdx) & (df['std(z)'] > stdz) & (df['%AvoidSteps'] > psteps) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
-
-def filterFalsePositives(df: panda.DataFrame, stdx = 0.2, stdz = 0.2):
-    return (df['std(x)'] > stdx) & (df['std(z)'] > stdz) # & (abs(df['%AvoidSteps'] - df['%AvoidEvents']) < 0.2)
-
 if len(sys.argv) > 1:
 
     dataPath = Path(sys.argv[1])
-    
     # -------------------------------------------------------------------------------------------------- #
     
     df = panda.DataFrame() 
@@ -38,23 +29,19 @@ if len(sys.argv) > 1:
     elif dataPath.is_file() and 'csv' in dataPath.suffix:
         df = panda.read_csv(dataPath)
 
-    # top = df[filterTopStats(df)].iloc[:, 2:12]
-    
-    # print(top)
+    plot_columns = ['index','LR','FR','%AvoidSteps', 'CT']
 
     # ------------------------------------------------------------------
 
     versions = df['version'].unique()
     modes = df['mode'].unique()
 
-    plot_columns = ['index','LR','FR','%AvoidSteps', 'CT']
-    
     for version in versions:
         for mode in modes:
             
             # ------------------------------------------------------------------
 
-            filt = filterModeAndVersion(df, mode, version) & filterFalsePositives(df)
+            filt = filterModeAndVersion(df, mode, version) & (filterFalsePositives(df) if 'train' in mode else filterTopStats(df))
 
             # -------------------------------------------------------------------------------
 
@@ -75,7 +62,7 @@ if len(sys.argv) > 1:
 
             plot.suptitle(
                 f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
-                    plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
+                    plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
                 )
             )
 
@@ -102,7 +89,7 @@ if len(sys.argv) > 1:
 
             plot.suptitle(
                 f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (
-                    plot_columns[0], plot_columns[1], plot_columns[3], plot_columns[2]
+                    plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
                 )
             )
 

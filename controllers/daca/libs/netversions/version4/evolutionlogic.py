@@ -1,8 +1,9 @@
 import libs.annutils as annutils
 from libs.learningparameters import LearningParameters
-import libs.netversions.version4.neuralnetstructure as nns
 from libs.log import logger
 from libs.motorresponse import wheelVelocity
+
+import libs.netversions.version4.neuralnetstructure as nns
 
 def setNetworkParameters(params: dict or LearningParameters):
 
@@ -12,14 +13,17 @@ def setNetworkParameters(params: dict or LearningParameters):
     elif isinstance(params, LearningParameters):
         nns.learningParameters = params
 
-def getNetworkParams() -> dict:
-    nns.learningParameters.toDict()
+def getNetworkParams() -> LearningParameters:
+    return nns.learningParameters
 
 def setNetworkConnectivities(conn:dict):
     nns.connectivities = conn
 
 def getConnectivities():
     return nns.connectivities
+
+def getLayerOutput(layer:int):
+    return nns.outputs[layer]
 
 def processProximityLayer(distances: list):
     # DISTANCES_INPUT -> PROXIMITY  ---------------------------- LAYER 0
@@ -134,7 +138,10 @@ def updateWeights():
     proxOut = nns.outputs[0]
     collOut = nns.outputs[1]
     
-    updatedWeights = annutils.updateSparseConnectivities(nns.connectivities[1], collOut, proxOut, nns.LEARNING_RATE, nns.FORGET_RATE)
+    updatedWeights = annutils.updateSparseConnectivities(
+        nns.connectivities[1], collOut, proxOut, 
+        nns.learningParameters.learningRate, nns.learningParameters.forgetRate
+    )
     nns.connectivities.update({1: updatedWeights})
     
 def calculateMotorSpeed():

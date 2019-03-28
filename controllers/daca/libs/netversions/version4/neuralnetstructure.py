@@ -1,6 +1,8 @@
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
-from libs.learningparameters import *
+from libs.learningparameters import LearningParameters
+import sys
+from libs.argutils import opt
 
 # Learning Parameters #########################
 
@@ -9,13 +11,12 @@ learningParameters = LearningParameters(0.05, 0.8, 0.65, 1, 2)
 #~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
 
-# active_ps = [0, 1, 2, 3, 4, 5, 6, 7] # v2
-# active_ts = [0, 1, 2, 3, 4, 5, 6, 7] # v2
 active_ps = [0, 1, 2, 5, 6, 7] # v4
 active_ts = [0, 1, 2, 5, 6, 7] # v4
 
-# motor_config = [[4, 5, 6, 7], [0, 1, 2, 3]] # v2
 motor_config = [[5, 6, 7], [0, 1, 2]] # v4
+
+# ---------------------------------------------------------------------
 
 _proximityToCollisionConnections = annutils.fullyConnected(active_ts, active_ps)
 
