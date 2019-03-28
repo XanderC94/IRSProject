@@ -31,7 +31,7 @@ def scatterplot(xs:list, ys:list, zs:list, ts:list,
     ax.set_ylim(limits['y'][0], limits['y'][1])
     ax.set_zlim(limits['z'][0], limits['z'][1])
 
-    ax.set_zticks(np.arange(limits['z'][0], limits['z'][1], 0.1))
+    ax.set_zticks(np.arange(limits['z'][0], limits['z'][1], 0.05), minor=True)
         
     # -------------------------------------------------------------------------------------------------------
 
@@ -90,8 +90,10 @@ def plot2d(xs:list, ys:list, ts:list,
     ax.set_xlim(limits['x'][0], limits['x'][1])
     ax.set_ylim(limits['y'][0], limits['y'][1])
 
-    ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.05))
+    ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.1))
     
+    ax.minorticks_on()
+
     # -------------------------------------------------------------------------------------------------------
     
     for i in range(0, len(xs)):
@@ -148,7 +150,8 @@ def plot2d(xs:list, ys:list, ts:list,
             
             nextc = (nextc + 1) % len(__colors)
 
-    ax.grid(linestyle="--", color='lightgray')
+    ax.grid(linestyle="--", which= 'major', color='lightgray')
+    ax.grid(linestyle=":", which= 'minor', color='lightgray')
     ax.legend(loc='best', fontsize='x-small')
 
     # ---------------------------------------------------------------------------------------------

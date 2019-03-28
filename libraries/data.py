@@ -147,7 +147,7 @@ def extractData(path: Path, saveLog = False, getModel = False) -> (Path or None,
     stats[cols.RT] = model['parameters']['reverseThreshold']
     stats[cols.MT] = model['parameters']['motorThreshold']
 
-    stats[cols.ORIGIN] = str(path.absolute)
+    stats[cols.ORIGIN] = str(path.absolute())
     
     print(f'Completed: {path.name}')
     

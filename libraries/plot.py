@@ -37,73 +37,88 @@ if len(sys.argv) > 1:
     modes = df['mode'].unique()
 
     for version in versions:
+        
+        # Align Test models IDs with their trained counterpart
+        idx_trains = df[filterModeAndVersion(df, 'train', version)][['index', 'LR', 'FR', 'CT']]
+        tests = df[filterModeAndVersion(df, 'test', version)]
+                
+        if len(idx_trains) > 0 and len(tests) > 0:
+            
+            df.drop(tests.index, inplace=True)
+            tests = idx_trains.merge(tests.iloc[:, 1:], on=['LR', 'FR', 'CT'], how='inner')[['index'] + cols.ordered_columns]
+            df = df.append(tests, ignore_index=True, sort=False)
+
         for mode in modes:
             
             # ------------------------------------------------------------------
 
-            filt = filterModeAndVersion(df, mode, version) & (filterFalsePositives(df) if 'train' in mode else filterTopStats(df))
+            filt = filterModeAndVersion(df, mode, version) & filterFalsePositives(df)
 
             # -------------------------------------------------------------------------------
 
             data = df[filt][plot_columns].sort_values(['LR', 'FR', 'CT'], ascending = [True, True, True])
 
-            idx, xa, ya, za, ta = data.T.values
+            if len(data) > 0:
 
-            xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
+                idx, xa, ya, za, ta = data.T.values
 
-            __x = [float(i / len(xy)) for i in range(0, len(xy))]
-            
-            plot = figure.scatterplot(
-                [__x], [ta], [za], [xy], 
-                limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
-                labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
-                info=figure.tuple_label
-            )
+                xy = [ (xi, yi) for xi, yi in zip(xa, ya)]
 
-            plot.suptitle(
-                f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
-                    plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                __x = [float(i / len(xy)) for i in range(0, len(xy))]
+                
+                plot = figure.scatterplot(
+                    [__x], [ta], [za], [xy],
+                    legend=['controller model'],
+                    limits={'x':[0, 1], 'y':[0.6, 1.0], 'z':[0, 1]},
+                    labels={'x':'(LR, FR)', 'y': 'Collision Threshold', 'z':'% Avoided Collisions'},
+                    info=figure.tuple_label
                 )
-            )
 
-            plot.canvas.set_window_title(mode)    
-
-            plot.subplots_adjust(
-                left=0.0,
-                right=1.0,
-                bottom=0.0,
-                top=1.0,
-                wspace= 0.0,
-                hspace=0.0
-            )
-
-            xyt = [ (xi, yi, ti) for xi, yi, ti in zip(xa, ya, ta)]
-
-            __x = [float(i / len(xyt)) for i in range(0, len(xyt))]
-
-            plot = figure.plot2d(
-                [__x], [za], [xyt],
-                ids=[idx],
-                yfilter=0.8
-            )
-
-            plot.suptitle(
-                f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (
-                    plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                plot.suptitle(
+                    f'{mode} Data - Ann v{version} - x:(%s, %s), y: %s, z:%s' % (
+                        plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                    )
                 )
-            )
 
-            plot.canvas.set_window_title(mode)    
+                plot.canvas.set_window_title(mode)
 
-            plot.subplots_adjust(
-                left=0.05,
-                right=0.99,
-                bottom=0.05,
-                top=0.96,
-                wspace= 0.0,
-                hspace=0.0
-            )
+                plot.subplots_adjust(
+                    left=0.0,
+                    right=1.0,
+                    bottom=0.0,
+                    top=1.0,
+                    wspace= 0.0,
+                    hspace=0.0
+                )
 
+                xyt = [ (xi, yi, ti) for xi, yi, ti in zip(xa, ya, ta)]
+
+                __x = [float(i / len(xyt)) for i in range(0, len(xyt))]
+
+                plot = figure.plot2d(
+                    [__x], [za], [xyt],
+                    ids=[idx],
+                    yfilter=0.8
+                )
+
+                plot.suptitle(
+                    f'{mode} Data - Ann v{version} - x:(%s, %s, %s), y: %s' % (
+                        plot_columns[1], plot_columns[2], plot_columns[4], plot_columns[3]
+                    )
+                )
+
+                plot.canvas.set_window_title(mode)    
+
+                plot.subplots_adjust(
+                    left=0.05,
+                    right=0.99,
+                    bottom=0.05,
+                    top=0.96,
+                    wspace= 0.0,
+                    hspace=0.0
+                )
+
+        df.drop(df[(df['version'] == version)].index, inplace=True)
     # ------------------------------------------------------------------
     
     plotter.show()

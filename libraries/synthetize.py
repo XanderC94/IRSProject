@@ -3,7 +3,6 @@ from pathlib import Path
 import pandas as panda
 import columns as cols
 from data import extractData
-
 from utils import *
 
 def synthesis(df: panda.DataFrame) -> panda.DataFrame:
@@ -58,7 +57,6 @@ def __getSynthData(path, getModel) -> (panda.DataFrame, dict):
     else:
         return (__stats, {})
     
-
 if __name__== "__main__" and len(sys.argv) > 1:
 
     dataPath = Path(sys.argv[1])
@@ -70,7 +68,7 @@ if __name__== "__main__" and len(sys.argv) > 1:
     df = panda.DataFrame()
     models = []
 
-    if dataPath.is_file() and dataPath.suffix == '.json':
+    if dataPath.is_file() and 'json' in dataPath.suffix:
         
         saveDir = dataPath.parent / 'csv'
 
@@ -83,7 +81,7 @@ if __name__== "__main__" and len(sys.argv) > 1:
         saveDir = dataPath / 'csv'
 
         for f in dataPath.iterdir():
-            if f.is_file() and f.suffix == '.json':
+            if f.is_file() and 'json' in f.suffix :
                 stats, model = __getSynthData(f, getModel)
                 df = df.append(stats, ignore_index=True)
                 if len(model) > 0: models.append(model)
@@ -95,7 +93,7 @@ if __name__== "__main__" and len(sys.argv) > 1:
 
     modelsDir = saveDir / 'models'
 
-    if not modelsDir.exists():
+    if getModel and not modelsDir.exists():
         modelsDir.mkdir()
 
     # ---------------------------------------------------------------------------
