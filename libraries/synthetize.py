@@ -118,8 +118,8 @@ if __name__== "__main__" and len(sys.argv) > 1:
             lr = model['parameters']['learningRate']
             fr = model['parameters']['forgetRate']
             ct = model['parameters']['collisionThreshold']
-
-            savePath = modelsDir / f'model.to.test.lr{lr}.fr{fr}.ct{ct}.{getDate()}.json'
+            v = model['version']
+            savePath = modelsDir / f'model.v{v}.to.test.lr{lr}.fr{fr}.ct{ct}.{getDate()}.json'
             with open(savePath, mode='w') as savefile:
                 json.dump(model,savefile, indent=4)
             
