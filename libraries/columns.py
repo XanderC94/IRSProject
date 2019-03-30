@@ -17,6 +17,7 @@ N_STEPS=_nSteps('')
 N_AVOID_STEPS=_nSteps('Avoid')
 N_COLLIDE_STEPS=_nSteps('Collide')
 N_ERROR_STEPS=_nSteps('Error')
+N_GOINGBY_STEPS=_nSteps('GoingBy')
 
 N_EVENTS=_nEvents('')
 N_AVOID_EVENTS=_nEvents('Avoid')
@@ -52,25 +53,34 @@ ORIGIN='origin'
 ordered_columns = [
     VERSION,
     MODE,
+
+    N_GOINGBY_STEPS,
     N_AVOID_STEPS,
     N_COLLIDE_STEPS,
+
     N_AVOID_EVENTS,
     N_COLLIDE_EVENTS,
+
     MEAN_AVOID_STEPS,
     MEAN_COLLIDE_STEPS,
+
     P_AVOID_STEPS,
     P_COLLIDE_STEPS,
+
     P_AVOID_EVENTS,
     P_COLLIDE_EVENTS,
+    
     STDX,
     STDZ,
     # MAXX,
     # MAXZ,
+    
     LR,
     FR,
     CT,
     RT,
     MT,
+
     ORIGIN
 ]
 

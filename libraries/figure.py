@@ -2,6 +2,7 @@ import matplotlib.pyplot as plotter
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.cm as cmx
 import matplotlib.colors as clrs
+from matplotlib.ticker import AutoMinorLocator 
 import numpy as np
 
 point_label = lambda x,y,z,t: '(%.2f, %.2f, %.2f), %.2f' % (x, y, float(z).__round__(2), t)
@@ -195,7 +196,7 @@ def plot2d(xs:list, ys:list, ts:list,
 
 def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
         legend = ['avoidance events'], 
-        labels = {'x':'(LR, FR, CT)', 'y':'% Avoided Collisions'},
+        labels = {'x':'(LR, FR, CT) x 1/100', 'y':'% Avoided Collisions'},
         limits = {'x':[0.0, 1.1],'y':[0.0, 1.05]},
         hfilter = 0.8,
         info = tuple_label):
@@ -214,18 +215,22 @@ def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
 
     chopsticks = list()
     dumbsticks = list()
+
     for i, t in zip(xs, ts):
-        if not (t[0] in dumbsticks):
-            dumbsticks.append(t[0])
+        l = (t[0] * 100, t[1] * 100)
+
+        if not (l in dumbsticks):
+            dumbsticks.append(l)
             chopsticks.append(i)
 
-    ax.set_xticks(chopsticks)
-    ax.set_xticklabels(dumbsticks)
-    
-    ax.minorticks_on()
+    ax.set_xticks(xmajor_ticks)
+    ax.set_xticklabels(['%.1f,%.0f' % (l ) for l in xmajor_labels], rotation=-45)
+    # ax.set_xticks(pipesticks, minor=True)
+    # ax.set_xticklabels([ '%.0f' % s for fs in firesticks for s in fs], fontdict={'verticalalignment':'top'}, minor=True, y=-0.05)
 
-    ax.grid(b= True, linestyle="--", which= 'major', color='darkgray')
-    ax.grid(b= True, linestyle=":", which= 'minor', color='lightgray')
+    ax.grid(linestyle="--", which= 'major', color='darkgray')
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.grid(linestyle=":", which= 'minor', color='lightgray')
 
     # -------------------------------------------------------------------------------------------------------
         

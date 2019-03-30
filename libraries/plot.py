@@ -84,9 +84,9 @@ if len(sys.argv) > 1:
                 plot.canvas.set_window_title(f'{mode}.annv{version}.2d')    
 
                 plot.subplots_adjust(
-                    left=0.05,
+                    left=0.03,
                     right=0.99,
-                    bottom=0.05,
+                    bottom=0.09,
                     top=0.96,
                     wspace= 0.0,
                     hspace=0.0

@@ -2,19 +2,20 @@ import math, json, sys
 from pathlib import Path
 import pandas as panda
 import columns as cols
+from utils import Events
 
 def eventMatcher(x) -> str:
 
     _stub = (x['collision'], x['activation'])
 
     if _stub == (False, False):
-        return "Going By"
+        return Events.GOINGBY
     elif _stub == (False, True):
-        return "Avoidance"
+        return Events.AVOIDANCE
     elif _stub == (True, True):
-        return "Collision"
+        return Events.COLLISION
     else:
-        return "Error"
+        return Events.ERROR
 
 def extractData(path: Path, saveLog = False, getModel = False) -> (Path or None, panda.DataFrame, dict):
 

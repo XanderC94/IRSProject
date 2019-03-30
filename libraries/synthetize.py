@@ -8,7 +8,6 @@ from utils import *
 def synthesis(df: panda.DataFrame) -> panda.DataFrame:
 
     __df = df.drop([cols.ACTIVATION, cols.COLLISION], axis = 1)
-    __df = __df[__df[cols.EVENT] != 'Going By']
 
     coll = __df[filterCollision(__df)].rename(
         columns= {
@@ -30,8 +29,15 @@ def synthesis(df: panda.DataFrame) -> panda.DataFrame:
         }
     )
 
+    goingby = __df[filterGoingBy(__df)][['event', 'nSteps'] + cols.standalone_columns].rename(
+        columns= {
+            cols.N_STEPS:cols.N_GOINGBY_STEPS,
+        }
+    )
+
     avoid = avoid.drop([cols.EVENT], axis=1)
     coll = coll.drop([cols.EVENT], axis=1)
+    goingby = goingby.drop([cols.EVENT], axis=1)
 
     synth = panda.DataFrame()
 
@@ -41,6 +47,11 @@ def synthesis(df: panda.DataFrame) -> panda.DataFrame:
         synth = fillZero(avoid, 'Collide')
     else:
         synth = avoid.merge(coll, on=cols.standalone_columns)
+
+    if len(goingby) == 0:
+        synth[cols._nSteps('GoingBy')] = 0
+    else:
+        synth = synth.merge(goingby, on=cols.standalone_columns)
 
     return synth[cols.ordered_columns]
 
