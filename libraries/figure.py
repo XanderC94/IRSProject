@@ -232,7 +232,7 @@ def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
     nextc = 0
     offxy = [-1, 0.015]
 
-
+    ax.plot([limits['x'][0], limits['x'][1]], [0.8, 0.8], color='r', linestyle='-.', linewidth='2.0')
 
     for i, x, h, w, t in zip(ids, xs, hs, ws, ts):
 
@@ -257,7 +257,7 @@ def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
         
         nextc = (nextc + 1) % len(__colors)
 
-    ax.legend(loc='best', fontsize='x-small')
+    ax.legend(loc='upper right', fontsize='x-small')
 
     # ---------------------------------------------------------------------------------------------
     
