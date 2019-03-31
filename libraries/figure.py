@@ -196,7 +196,7 @@ def plot2d(xs:list, ys:list, ts:list,
 
 def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
         legend = ['avoidance events'], 
-        labels = {'x':'(LR, FR, CT) x 1/100', 'y':'% Avoided Collisions'},
+        labels = {'x':'(LR, FR, CT) × 10ˉ²', 'y':'% Avoided Collisions'},
         limits = {'x':[0.0, 1.1],'y':[0.0, 1.05]},
         hfilter = 0.8,
         info = tuple_label):
@@ -213,20 +213,22 @@ def stackedbars2d(xs:list, hs:list, ws:list, ts:list, ids:list,
 
     ax.set_yticks(np.arange(limits['y'][0], limits['y'][1], 0.1))
 
-    chopsticks = list()
-    dumbsticks = list()
+    xmat = list()
+    xl = list()
 
-    for i, t in zip(xs, ts):
-        l = (t[0] * 100, t[1] * 100)
+    for xi, ti in zip(xs, ts):
 
-        if not (l in dumbsticks):
-            dumbsticks.append(l)
-            chopsticks.append(i)
+        mal = (ti[0] * 100)
+        mil = (ti[1] * 100)
 
-    ax.set_xticks(xmajor_ticks)
-    ax.set_xticklabels(['%.1f,%.0f' % (l ) for l in xmajor_labels], rotation=-45)
-    # ax.set_xticks(pipesticks, minor=True)
-    # ax.set_xticklabels([ '%.0f' % s for fs in firesticks for s in fs], fontdict={'verticalalignment':'top'}, minor=True, y=-0.05)
+        if not ((mal, mil) in xl):
+            
+            xmat.append(xi)
+            xl.append((mal, mil))
+      
+    ax.set_xticks(xmat)
+    ax.set_xticklabels(['%.1f,%.0f' % p for p in xl], rotation=-45, y=0.01)
+    ax.tick_params(axis='x', which='major', direction='out', length=10)
 
     ax.grid(linestyle="--", which= 'major', color='darkgray')
     ax.yaxis.set_minor_locator(AutoMinorLocator())

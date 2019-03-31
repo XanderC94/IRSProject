@@ -67,7 +67,7 @@ if len(sys.argv) > 1:
                 wmax = max(ms) * 1.1
                 ws = [5*(1.0 - float(wi / wmax)) for wi in ms]
 
-                xs = [(i + w) * 1.2 for i, w in zip(idx, np.cumsum(ws))]
+                xs = [(i + w) * 1.5 for i, w in zip(idx, np.cumsum(ws))]
 
                 plot = figure.stackedbars2d(
                     xs, hs, ws, ts, idx,
