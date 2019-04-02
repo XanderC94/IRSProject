@@ -37,12 +37,35 @@ if len(sys.argv) > 1:
     if not saveDir.exists():
         saveDir.mkdir()
 
+    versions = df['version'].unique()
+
+    for version in versions:
+        
+        # Align Test models IDs with their trained counterpart
+        idx_trains = df[filterModeAndVersion(df, 'train', version)][['index', 'LR', 'FR', 'CT']]
+        tests = df[filterModeAndVersion(df, 'test', version)]
+                
+        if len(idx_trains) > 0 and len(tests) > 0:
+            
+            df.drop(tests.index, inplace=True)
+            tests = idx_trains.merge(tests.iloc[:, 1:], on=['LR', 'FR', 'CT'], how='inner')[['index'] + cols.ordered_columns]
+            df = df.append(tests, ignore_index=True, sort=False)
+
     plot_columns = ['index', 'version', 'mode', 'LR','FR','CT', 'nGoingBySteps', 'mAvoidSteps', '%AvoidSteps', 'std(x)', 'std(z)']
 
-    topstats = df[filterTopStats(df, stdx=0.25, stdz=0.25) & (df['mode'] == 'test')][plot_columns].sort_values(['std(x)', 'std(z)', '%AvoidSteps'], ascending=[False, False, False])
+    topstats = df[filterTopStats(df) & (df['mode'] == 'test')][plot_columns]
+
+    __stubdf = panda.DataFrame()
+
+    __stubdf['mean_std'] = (topstats['std(x)'] + topstats['std(z)']) / 2
+    __stubdf['std'] = (topstats['std(x)'] - __stubdf['mean_std']) * (topstats['std(x)'] - __stubdf['mean_std']) + (topstats['std(z)'] - __stubdf['mean_std']) * (topstats['std(z)'] - __stubdf['mean_std'])
+
+    __stubdf['std'] = (__stubdf['std'] / 2) ** 0.5
+
+    topstats['rank'] = (__stubdf['mean_std'] * 0.35 - __stubdf['std'] * 0.05 + topstats['%AvoidSteps'] * 0.6) / 1.0
     
     # print(topstats)
 
-    topstats.to_csv(saveDir / f'topstats.all.{getDate()}.csv', index=False)
+    topstats.sort_values(['rank'], ascending=[False]).to_csv(saveDir / f'topstats.all.{getDate()}.csv', index=False)
 
     # ------------------------------------------------------------------
