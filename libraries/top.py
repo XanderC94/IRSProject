@@ -23,7 +23,8 @@ if len(sys.argv) > 1:
 
     if dataPath.is_dir():
 
-        saveDir = dataPath
+        saveDir = dataPath / 'top'
+
         for csvPath in dataPath.iterdir():
             if 'csv' in csvPath.suffix:
                 _csv = panda.read_csv(csvPath)
@@ -31,11 +32,14 @@ if len(sys.argv) > 1:
 
     elif dataPath.is_file() and 'csv' in dataPath.suffix:
         df = panda.read_csv(dataPath)
-        saveDir = dataPath.parent
+        saveDir = dataPath.parent / 'top'
+
+    if not saveDir.exists():
+        saveDir.mkdir()
 
     plot_columns = ['index', 'version', 'mode', 'LR','FR','CT', 'nGoingBySteps', 'mAvoidSteps', '%AvoidSteps', 'std(x)', 'std(z)']
 
-    topstats = df[filterTopStats(df) & (df['mode'] == 'test')][plot_columns].sort_values(['std(x)', 'std(z)', '%AvoidSteps'], ascending=[False, False, False])
+    topstats = df[filterTopStats(df, stdx=0.25, stdz=0.25) & (df['mode'] == 'test')][plot_columns].sort_values(['std(x)', 'std(z)', '%AvoidSteps'], ascending=[False, False, False])
     
     # print(topstats)
 
