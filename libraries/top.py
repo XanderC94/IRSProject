@@ -35,7 +35,7 @@ if len(sys.argv) > 1:
 
     plot_columns = ['index', 'version', 'mode', 'LR','FR','CT', 'nGoingBySteps', 'mAvoidSteps', '%AvoidSteps', 'std(x)', 'std(z)']
 
-    topstats = df[filterTopStats(df) & (df['mode'] == 'test')][plot_columns].sort_values(['%AvoidSteps'], ascending=[False])
+    topstats = df[filterTopStats(df) & (df['mode'] == 'test')][plot_columns].sort_values(['std(x)', 'std(z)', '%AvoidSteps'], ascending=[False, False, False])
     
     # print(topstats)
 
