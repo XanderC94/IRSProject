@@ -53,7 +53,7 @@ if len(sys.argv) > 1:
 
     plot_columns = ['index', 'version', 'mode', 'LR','FR','CT', 'nGoingBySteps', 'mAvoidSteps', '%AvoidSteps', 'std(x)', 'std(z)']
 
-    topstats = df[filterTopStats(df) & (df['mode'] == 'test')][plot_columns]
+    topstats = df[filterFalsePositives(df) & (df['mode'] == 'test')][plot_columns]
 
     __stubdf = panda.DataFrame()
 
@@ -62,7 +62,9 @@ if len(sys.argv) > 1:
 
     __stubdf['std'] = (__stubdf['std'] / 2) ** 0.5
 
-    topstats['rank'] = (__stubdf['mean_std'] * 0.35 - __stubdf['std'] * 0.05 + topstats['%AvoidSteps'] * 0.6) / 1.0
+    topstats['rank'] = 1 + (__stubdf['mean_std'] * 0.35 - __stubdf['std'] * 0.05 + topstats['%AvoidSteps'] * 0.6) / 1.0
+
+    topstats['rank'] = topstats['rank'] / topstats['rank'].max()
     
     # print(topstats)
 
