@@ -1,3 +1,44 @@
+"""
+Network structure - "dacv4"
+
+Summary:
+
+----------- E-PUCK: ----------------
+|
+|          -  7-0  -
+|    6  /             \  1            
+|      |      [^]      |
+|    5 |               | 2
+|      |               | 
+|       \             /
+|          -  4-3  -
+|
+|     [^]  = Front direction
+|     numbers -> sensor index  
+|
+-------------------------------------
+
+PROXIMITY LAYER --composed of--: A neuron for each proximity sensor mounted on the front of the robot 
+        |                        [the proximity sensors mounted on the back are disconnected (ps3 and ps4)]
+        |
+[Fully connected to]
+        |
+        |
+        '----> COLLISION LAYER --composed of--: A neuron for each bumper sensor mountend on the front of the robot
+                    |                           [the bumper sensors mounted on the back are disconnected (bs3 and bs4)]
+                    |
+                    |-[collision neurons associated to bs7 and bs0 are connected to]--> 1 REVERSE Neuron
+                    |
+                    '---> MOTOR LAYER -- composed of --: 2 Motor Neurons where: 
+                                                          - one of them is associated to the left motor wheel 
+                                                            and is connected to the collision layer neurons 
+                                                            associated with bumper sensors (bs5, bs6, bs7)
+                                                          - the other neuron is associated to the right motor wheel 
+                                                            and is connected to the collision layer neurons 
+                                                            associated with bumper sensors (bs0, bs1, bs2)
+
+"""
+
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V
 import libs.annutils as annutils
 from libs.learningparameters import LearningParameters
@@ -8,7 +49,7 @@ from libs.argutils import opt
 
 learningParameters = LearningParameters(0.05, 0.8, 0.65, 1, 2)
 
-#~~~~~~~~~~~~~ NETWORK STRUCTURE - Version 4  ~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~ NETWORK STRUCTURE ~~~~~~~~~~~~~~~~~~~~~
 # Rear bumpers and distance sensors are disconnected
 
 active_ps = [0, 1, 2, 5, 6, 7] # v4
@@ -52,8 +93,8 @@ outputs = {
 
 ###################### Neuron Functions ############################################ 
 # sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w 
-#  '-> compositionFunction[layer]  
-#       '-> activationFunction[layer]  
+#  '-> compositionFunction[layer] as h
+#       '-> activationFunction[layer] as a
 #           '->  outputFunction[layer] as o
 
 # sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 

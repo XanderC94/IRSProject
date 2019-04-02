@@ -1,13 +1,45 @@
 """
-Network structure VERSION 3
-A neuron for each proximity sensors
-        |
-        '----> 3 Neuron in the Collision layer 
-                    |---> 1 Reverse Neuron
-                    '---> 2 Motor Neuron
+Network structure - "dacv3"
 
+Summary:
+
+----------- E-PUCK: ----------------
+|
+|          -  7-0  -
+|    6  /             \  1            
+|      |      [^]      |
+|    5 |               | 2
+|      |               | 
+|       \             /
+|          -  4-3  -
+|
+|     [^]  = Front direction
+|     numbers -> sensor index  
+|
+-------------------------------------
+
+PROXIMITY LAYER --composed of--: A neuron for each proximity sensor 
+        |
+[Fully connected to]
+        |
+        |
+        '----> COLLISION LAYER --composed of--: 3 neurons where: 
+                    |                           - the first is associated to the bumper sensors bs0,bs1 and bs2
+                    |                           - the second is associated to the bumper sensors bs3 and bs4
+                    |                           - the third is associated to the bumper sensors bs5, bs6 and bs7
+                    |
+                    |-[collision neurons associated to bs7 and bs0 are connected to]--> 1 REVERSE Neuron
+                    |
+                    '---> MOTOR LAYER -- composed of --: 2 Motor Neurons where: 
+                                                          - one of them is associated to the left motor wheel 
+                                                            and is connected to the collision layer neuron 
+                                                            associated with bumper sensors (bs5, bs6, bs7)
+                                                          - the other neuron is associated to the right motor wheel 
+                                                            and is connected to the collision layer neuron
+                                                            associated with bumper sensors (bs0, bs1, bs2)
 
 """
+
 from libs.epuck import nBumpers, nDistanceSensors, nMotors, nLightSensors, MIN_V, PI
 import libs.annutils as annutils
 from libs.learningparameters import *
@@ -15,7 +47,7 @@ from libs.learningparameters import *
 
 learningParameters = LearningParameters(0.08, 0.8, 0.65, 1, 2)
 
-#~~~~~~~~~~~~~ NETWORK STRUCTURE  ~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~ NETWORK STRUCTURE ~~~~~~~~~~~~~~~~~~~~~
 
 active_ps = [0, 1, 2, 3, 4, 5, 6, 7]
 
@@ -58,8 +90,8 @@ outputs = {
 
 ###################### Neuron Functions ############################################ 
 # sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w 
-#  '-> compositionFunction[layer]  
-#       '-> activationFunction[layer]  
+#  '-> compositionFunction[layer] as h
+#       '-> activationFunction[layer] as a 
 #           '->  outputFunction[layer] as o
 
 # sensorInput as sIn, previousLayerOutput as plOut, weights[[layer - 1] -> [layer]] as w -> compositionFunction[layer] as h 
