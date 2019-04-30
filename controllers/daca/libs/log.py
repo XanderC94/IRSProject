@@ -1,10 +1,10 @@
-import logging, os
+import logging, os, datetime
 
 class DACLogger:
 
     bufferLenght = 50
 
-    def __init__(self, name : str = "DAC", path: str = f"{os.getcwd()}/dac.log"):
+    def __init__(self, name : str = "DAC", path: str = f"{os.getcwd()}/dac.{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}.log"):
 
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)

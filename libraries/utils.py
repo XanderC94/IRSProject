@@ -42,3 +42,20 @@ def filterError(df: panda.DataFrame):
 
 def filterGoingBy(df: panda.DataFrame):
     return (df['event'] == Events.GOINGBY)
+
+class Float(float):
+    def __init__(self, value:float):
+        self.value = value
+
+    def isBetween(self, a:float, b:float, upperbounded : bool = False, lowerbounded : bool = False):
+        
+        _b, _a = (a, b) if a > b else (b, a)
+        
+        if upperbounded and lowerbounded:
+            return self.value < _b and self.value > _a
+        elif upperbounded:
+            return self.value < _b and self.value >= _a
+        elif lowerbounded:
+            return self.value <= _b and self.value > _a
+        else:
+            return self.value <= _b and self.value >= _a

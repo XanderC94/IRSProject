@@ -26,14 +26,6 @@ E-puck {
   controllerArgs "--args=../../config/controllerArgs.json"
 }
 SolidBox {
-  translation 0.25 0.125 0.25
-  size 0.25 0.25 0.25
-  appearance PBRAppearance {
-    roughness 0.5
-    metalness 0
-  }
-}
-SolidBox {
   translation -0.4800000000000002 0.125 0.5100000000000002
   name "box(1)"
   size 0.25 0.25 0.25

@@ -66,6 +66,8 @@ def run(opt : Options, loghook: lambda info: None) -> TrainedModel:
         
         # -------------------- PERFORM SIMULATION STEP ------------------------
 
+        logger.info(f"step:{nSteps}")
+
         hasTouched = __step(opt)
 
         if (hasTouched): nTouches += 1

@@ -1,1 +1,16 @@
-{"version": 3, "time": 60, "mode": "test", "logging": false, "modelPath": "../../model/model.annv3.train.lr0.05.fr0.8.ct0.65.2019-03-20T20-53-47.json", "simulationLogPath": "../../logs/", "parameters": {"collisionThreshold": 0.65, "motorThreshold": 1, "reverseThreshold": 2, "learningRate": 0.05, "forgetRate": 0.8}}
+{
+    "version": 4,
+    "time": 1,
+    "mode": "train",
+    "logging": true,
+    "modelPath": "../../model/v4/",
+    "simulationLogPath": "../../logs/v4/",
+    "onTerminationQuit": false,
+    "parameters": {
+        "collisionThreshold": 0.85,
+        "motorThreshold": 1,
+        "reverseThreshold": 2,
+        "learningRate": 0.095,
+        "forgetRate": 0.7
+    }
+}
