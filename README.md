@@ -1,2 +1,2 @@
 # IRSProject
-Repository for the Intelligent Robotic System course
+Repository for the courses of Intelligent Robotic System and Autonomous Systems
