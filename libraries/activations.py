@@ -48,6 +48,8 @@ def plot_activation(activations: panda.DataFrame, title:str):
         ax[n].set_ylabel(f'n{neurons[n]}')
         ax[n].set_ylim(-0.1, 1.25)
         ax[n].set_xlim(-10, max(x) + 10)
+        # ax[n].set_xlim(2400, 3000)
+        # ax[n].set_xlim(4200, 4600)
 
         ax[n].plot(x, d[n], color='black', linewidth=0.75, label="Proximity")
         # ax[n].plot(x, list(map(lambda x: math.exp(-x), d[n])), color='green', linewidth=0.75, linestyle='-', label="Proximity Output")
